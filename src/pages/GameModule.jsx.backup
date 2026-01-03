@@ -1,0 +1,234 @@
+import { Download, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import Layout from '../components/layout/Layout';
+import Card from '../components/common/Card';
+import Button from '../components/common/Button';
+import { elderlyUsers, generateWeeklyReport } from '../data/mockData';
+
+const GameModule = () => {
+  const user = elderlyUsers[0];
+  const weeklyReport = generateWeeklyReport(user.id);
+  const gamesData = weeklyReport.games;
+
+  // Game sessions
+  const gameSessions = [
+    {
+      id: 1,
+      date: '2024-01-15',
+      gameName: 'Memory Match',
+      duration: 15,
+      score: 85,
+      parameters: {
+        'Accuracy': { score: 88, change: 5, unit: '%' },
+        'Speed': { score: 75, change: 3, unit: 'sec' },
+        'Attempts': { score: 12, change: -2, unit: '' },
+        'Completion': { score: 100, change: 0, unit: '%' },
+        'Focus': { score: 82, change: 4, unit: '%' },
+        'Pattern Recognition': { score: 90, change: 6, unit: '%' }
+      }
+    },
+    {
+      id: 2,
+      date: '2024-01-16',
+      gameName: 'Word Puzzle',
+      duration: 20,
+      score: 92,
+      parameters: {
+        'Accuracy': { score: 94, change: 6, unit: '%' },
+        'Speed': { score: 82, change: 7, unit: 'sec' },
+        'Attempts': { score: 8, change: -4, unit: '' },
+        'Completion': { score: 100, change: 0, unit: '%' },
+        'Focus': { score: 88, change: 6, unit: '%' },
+        'Vocabulary': { score: 95, change: 8, unit: '%' }
+      }
+    },
+    {
+      id: 3,
+      date: '2024-01-17',
+      gameName: 'Number Sequence',
+      duration: 18,
+      score: 78,
+      parameters: {
+        'Accuracy': { score: 80, change: 2, unit: '%' },
+        'Speed': { score: 68, change: -3, unit: 'sec' },
+        'Attempts': { score: 15, change: 3, unit: '' },
+        'Completion': { score: 95, change: -5, unit: '%' },
+        'Focus': { score: 75, change: 1, unit: '%' },
+        'Logic': { score: 82, change: 4, unit: '%' }
+      }
+    },
+    {
+      id: 4,
+      date: '2024-01-19',
+      gameName: 'Shape Sorting',
+      duration: 12,
+      score: 88,
+      parameters: {
+        'Accuracy': { score: 92, change: 4, unit: '%' },
+        'Speed': { score: 78, change: 2, unit: 'sec' },
+        'Attempts': { score: 10, change: -2, unit: '' },
+        'Completion': { score: 100, change: 0, unit: '%' },
+        'Focus': { score: 85, change: 3, unit: '%' },
+        'Spatial Awareness': { score: 89, change: 5, unit: '%' }
+      }
+    }
+  ];
+
+  const handleDownloadReport = () => {
+    alert('Downloading Game Module Weekly Report...');
+  };
+
+  const getChangeIcon = (change) => {
+    if (change > 0) return <TrendingUp className="w-4 h-4 text-green-600" />;
+    if (change < 0) return <TrendingDown className="w-4 h-4 text-red-600" />;
+    return null;
+  };
+
+  const getChangeColor = (change) => {
+    if (change > 0) return 'text-green-600';
+    if (change < 0) return 'text-red-600';
+    return 'text-secondary';
+  };
+
+  const getPerformanceColor = (score) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-deepBlue mb-2">Cognitive Games Activity</h1>
+            <p className="text-secondary">Weekly game performance and analytics</p>
+          </div>
+          <Button onClick={handleDownloadReport} className="flex items-center space-x-2">
+            <Download className="w-4 h-4" />
+            <span>Download Report</span>
+          </Button>
+        </div>
+
+        {/* Patient Details */}
+        <Card className="bg-primary/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-deepBlue mb-1">{user.name}</h2>
+              <p className="text-secondary">Age: {user.age} years | Status: {user.status}</p>
+            </div>
+            <div className="text-right">
+              <div className="flex items-center space-x-2 text-secondary mb-1">
+                <Calendar className="w-4 h-4" />
+                <span className="text-sm">Week Ending: Jan 20, 2024</span>
+              </div>
+              <p className="text-sm text-secondary">Last Activity: {user.lastActivity}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Weekly Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="text-center">
+            <p className="text-sm text-secondary mb-1">Games Played</p>
+            <p className="text-3xl font-bold text-deepBlue">{gamesData.totalGamesPlayed}</p>
+          </Card>
+          <Card className="text-center">
+            <p className="text-sm text-secondary mb-1">Total Time</p>
+            <p className="text-3xl font-bold text-deepBlue">{gamesData.totalTime} hrs</p>
+          </Card>
+          <Card className="text-center">
+            <p className="text-sm text-secondary mb-1">Avg Performance</p>
+            <p className={`text-3xl font-bold ${getPerformanceColor(gamesData.avgPerformance)}`}>
+              {gamesData.avgPerformance}%
+            </p>
+          </Card>
+          <Card className="text-center">
+            <p className="text-sm text-secondary mb-1">Improvement</p>
+            <p className="text-3xl font-bold text-green-600">+8%</p>
+          </Card>
+        </div>
+
+        {/* Game Sessions */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-deepBlue">Game Sessions This Week</h2>
+          {gameSessions.map((session) => (
+            <Card key={session.id} className="border-l-4 border-primary">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-deepBlue">{session.gameName}</h3>
+                  <p className="text-sm text-secondary">Date: {session.date} | Duration: {session.duration} minutes</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-secondary mb-1">Score</p>
+                  <p className={`text-3xl font-bold ${getPerformanceColor(session.score)}`}>{session.score}%</p>
+                </div>
+              </div>
+
+              {/* Parameters Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                {Object.entries(session.parameters).map(([paramName, data]) => (
+                  <div key={paramName} className="p-4 bg-secondaryBg rounded-lg">
+                    <p className="text-xs text-secondary mb-1">{paramName}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-2xl font-bold text-deepBlue">
+                        {data.score}{data.unit === '%' ? '%' : ''}
+                      </p>
+                      <div className="flex items-center space-x-1">
+                        {getChangeIcon(data.change)}
+                        <span className={`text-sm font-semibold ${getChangeColor(data.change)}`}>
+                          {data.change > 0 ? '+' : ''}{data.change}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-secondary mt-1">vs last week</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Popular Games */}
+        <Card>
+          <h3 className="text-xl font-bold text-deepBlue mb-4">Popular Games This Week</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {gamesData.popularGames.map((game, idx) => (
+              <div key={idx} className="p-4 bg-secondaryBg rounded-lg flex items-center justify-between">
+                <span className="text-deepBlue font-medium">{game}</span>
+                <span className="px-3 py-1 bg-primary text-white rounded-full text-sm">
+                  {Math.floor(Math.random() * 5) + 3} plays
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Performance Insights */}
+        <Card>
+          <h3 className="text-xl font-bold text-deepBlue mb-4">Performance Insights</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <h4 className="text-sm font-semibold text-green-800 mb-2">Strong Areas</h4>
+              <ul className="text-sm text-green-700 space-y-1">
+                <li>• Excellent pattern recognition</li>
+                <li>• High vocabulary scores</li>
+                <li>• Consistent completion rates</li>
+              </ul>
+            </div>
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <h4 className="text-sm font-semibold text-yellow-800 mb-2">Recommendations</h4>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li>• More number sequence games</li>
+                <li>• Increase game difficulty gradually</li>
+                <li>• Focus on speed improvement</li>
+              </ul>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </Layout>
+  );
+};
+
+export default GameModule;
