@@ -1,18 +1,11 @@
 import { useState } from 'react';
-import { User, Bell, FileText, Shield, Save } from 'lucide-react';
+import { Bell, FileText, Shield, Save } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import Avatar from '../components/common/Avatar';
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState('profile');
-  const [profile, setProfile] = useState({
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@example.com',
-    phone: '+1 (555) 123-4567',
-    role: 'Senior Caregiver'
-  });
+  const [activeTab, setActiveTab] = useState('notifications');
 
   const [notifications, setNotifications] = useState({
     emailAlerts: true,
@@ -30,14 +23,12 @@ const Settings = () => {
   });
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'security', label: 'Security', icon: Shield }
   ];
 
   const handleSave = () => {
-    // In production, this would save to backend
     alert('Settings saved successfully!');
   };
 
@@ -78,76 +69,6 @@ const Settings = () => {
 
           {/* Content Area */}
           <div className="lg:col-span-3">
-            {activeTab === 'profile' && (
-              <Card>
-                <h2 className="text-2xl font-bold text-deepBlue mb-6">Profile Settings</h2>
-
-                {/* Avatar Section */}
-                <div className="flex items-center space-x-6 mb-8 pb-6 border-b border-border">
-                  <Avatar name={profile.name} size="xl" />
-                  <div>
-                    <h3 className="font-semibold text-deepBlue mb-2">Profile Picture</h3>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">Change Photo</Button>
-                      <Button variant="ghost" size="sm">Remove</Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Profile Form */}
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-deepBlue mb-2">Full Name</label>
-                      <input
-                        type="text"
-                        value={profile.name}
-                        onChange={(e) => setProfile({...profile, name: e.target.value})}
-                        className="w-full px-4 py-2.5 bg-secondaryBg border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-deepBlue mb-2">Role</label>
-                      <input
-                        type="text"
-                        value={profile.role}
-                        onChange={(e) => setProfile({...profile, role: e.target.value})}
-                        className="w-full px-4 py-2.5 bg-secondaryBg border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-deepBlue mb-2">Email Address</label>
-                      <input
-                        type="email"
-                        value={profile.email}
-                        onChange={(e) => setProfile({...profile, email: e.target.value})}
-                        className="w-full px-4 py-2.5 bg-secondaryBg border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-deepBlue mb-2">Phone Number</label>
-                      <input
-                        type="tel"
-                        value={profile.phone}
-                        onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                        className="w-full px-4 py-2.5 bg-secondaryBg border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-4">
-                    <Button onClick={handleSave} className="flex items-center space-x-2">
-                      <Save className="w-4 h-4" />
-                      <span>Save Changes</span>
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )}
-
             {activeTab === 'notifications' && (
               <Card>
                 <h2 className="text-2xl font-bold text-deepBlue mb-6">Notification Preferences</h2>
@@ -355,12 +276,6 @@ const Settings = () => {
                     <h3 className="font-semibold text-deepBlue mb-2">Two-Factor Authentication</h3>
                     <p className="text-sm text-secondary mb-4">Add an extra layer of security to your account</p>
                     <Button variant="outline">Enable 2FA</Button>
-                  </div>
-
-                  <div className="pt-4 border-t border-border">
-                    <h3 className="font-semibold text-deepBlue mb-2 text-red-600">Danger Zone</h3>
-                    <p className="text-sm text-secondary mb-4">Permanently delete your account and all associated data</p>
-                    <Button variant="danger">Delete Account</Button>
                   </div>
 
                   <div className="flex justify-end pt-4">

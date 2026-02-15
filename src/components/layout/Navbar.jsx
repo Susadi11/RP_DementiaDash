@@ -1,8 +1,58 @@
 import { Search, Bell, User, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getCaregiverProfile, logoutCaregiver } from '../../services/api';
 
 const Navbar = () => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [caregiverName, setCaregiverName] = useState('');
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadCaregiverInfo();
+  }, []);
+
+  const loadCaregiverInfo = async () => {
+    // First try to get from localStorage
+    const storedName = localStorage.getItem('caregiver_name');
+    const storedPhoto = localStorage.getItem('profile_photo');
+    
+    if (storedName) {
+      setCaregiverName(storedName);
+    }
+    if (storedPhoto) {
+      setProfilePhoto(storedPhoto);
+    }
+
+    // Then fetch from API to get latest info
+    try {
+      const response = await getCaregiverProfile();
+      if (response.success) {
+        const { first_name, last_name, profile_photo } = response.caregiver;
+        const fullName = `${first_name} ${last_name}`;
+        setCaregiverName(fullName);
+        setProfilePhoto(profile_photo);
+        
+        // Update localStorage
+        localStorage.setItem('caregiver_name', fullName);
+        if (profile_photo) {
+          localStorage.setItem('profile_photo', profile_photo);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load caregiver info:', error);
+    }
+  };
+
+  const handleLogout = () => {
+    logoutCaregiver();
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    setShowProfileMenu(false);
+  };
 
   return (
     <nav className="bg-white border-b border-border px-6 py-4 sticky top-0 z-40">
@@ -41,28 +91,44 @@ const Navbar = () => {
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="flex items-center space-x-3 p-2 hover:bg-secondaryBg rounded-xl transition-colors"
             >
-              <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
-              </div>
+              {profilePhoto ? (
+                <img
+                  src={profilePhoto}
+                  alt="Profile"
+                  className="w-9 h-9 rounded-full object-cover border-2 border-primary"
+                />
+              ) : (
+                <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
               <div className="text-left hidden md:block">
-                <p className="text-sm font-semibold text-deepBlue">Sarah Johnson</p>
+                <p className="text-sm font-semibold text-deepBlue">
+                  {caregiverName || 'Loading...'}
+                </p>
                 <p className="text-xs text-secondary">Caregiver</p>
               </div>
               <ChevronDown className="w-4 h-4 text-secondary hidden md:block" />
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-border py-2">
-                <a href="#" className="block px-4 py-2 text-sm text-deepBlue hover:bg-secondaryBg">
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-border py-2 z-50">
+                <button
+                  onClick={handleProfileClick}
+                  className="w-full text-left block px-4 py-2 text-sm text-deepBlue hover:bg-secondaryBg"
+                >
                   Profile Settings
-                </a>
-                <a href="#" className="block px-4 py-2 text-sm text-deepBlue hover:bg-secondaryBg">
+                </button>
+                <a href="/settings" className="block px-4 py-2 text-sm text-deepBlue hover:bg-secondaryBg">
                   Preferences
                 </a>
                 <hr className="my-2 border-border" />
-                <a href="#" className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
                   Logout
-                </a>
+                </button>
               </div>
             )}
           </div>
