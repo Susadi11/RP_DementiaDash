@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import CaregiverRegister from './pages/CaregiverRegisterNew';
+import CaregiverProfile from './pages/CaregiverProfile';
 import Dashboard from './pages/Dashboard';
 import ChatModule from './pages/ChatModule';
 import MMSEModule from './pages/MMSEModule';
@@ -13,6 +15,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register/caregiver" element={<CaregiverRegister />} />
+        <Route path="/profile" element={<CaregiverProfile />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/chat" element={<ChatModule />} />
         <Route path="/mmse" element={<MMSEModule />} />
