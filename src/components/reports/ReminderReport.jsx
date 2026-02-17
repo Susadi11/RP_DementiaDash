@@ -44,7 +44,7 @@ const ReminderReport = ({ data }) => {
 
         {/* Compliance Chart */}
         <div>
-          <p className="text-sm font-semibold text-deepBlue mb-3">Completion Status</p>
+          <p className="text-sm font-semibold text-gray-900 mb-3">Completion Status</p>
           <DonutChart
             data={complianceData}
             colors={['#10B981', '#EF4444']}
@@ -56,14 +56,14 @@ const ReminderReport = ({ data }) => {
       {/* Missed Reminders */}
       {data.missedReminders.length > 0 && (
         <div className="mt-6">
-          <p className="text-sm font-semibold text-deepBlue mb-3">Missed Reminders</p>
+          <p className="text-sm font-semibold text-gray-900 mb-3">Missed Reminders</p>
           <div className="space-y-2">
             {data.missedReminders.map((reminder, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                 <div className="flex items-center space-x-3">
                   <XCircle className="w-4 h-4 text-red-600" />
                   <div>
-                    <p className="text-sm font-medium text-deepBlue">{reminder.title}</p>
+                    <p className="text-sm font-medium text-gray-900">{reminder.title}</p>
                     <p className="text-xs text-secondary">{reminder.date} at {reminder.time}</p>
                   </div>
                 </div>
@@ -76,13 +76,13 @@ const ReminderReport = ({ data }) => {
 
       {/* Medication Schedule */}
       <div className="mt-6">
-        <p className="text-sm font-semibold text-deepBlue mb-3">Medication Schedule</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Medication Schedule</p>
         <div className="space-y-3">
           {data.medications.map((med, index) => (
             <div key={index} className="p-4 bg-secondaryBg rounded-lg">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <p className="font-semibold text-deepBlue">{med.name}</p>
+                  <p className="font-semibold text-gray-900">{med.name}</p>
                   <p className="text-sm text-secondary">{med.dosage} - {med.frequency}</p>
                 </div>
                 <div className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -101,7 +101,7 @@ const ReminderReport = ({ data }) => {
 
       {/* Activity Completion */}
       <div className="mt-6">
-        <p className="text-sm font-semibold text-deepBlue mb-3">Activity Completion</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Activity Completion</p>
         <div className="space-y-2">
           {data.activities.map((activity, index) => (
             <div key={index} className="flex items-center justify-between">
@@ -113,7 +113,7 @@ const ReminderReport = ({ data }) => {
                     style={{ width: `${activity.completion}%` }}
                   ></div>
                 </div>
-                <span className="text-sm font-semibold text-deepBlue w-12 text-right">
+                <span className="text-sm font-semibold text-gray-900 w-12 text-right">
                   {activity.completion}%
                 </span>
               </div>

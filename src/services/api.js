@@ -18,7 +18,7 @@ const getAuthHeader = () => {
  */
 const handleResponse = async (response) => {
   const data = await response.json();
-  
+
   if (!response.ok) {
     // If token expired, try to refresh
     if (response.status === 401) {
@@ -32,7 +32,7 @@ const handleResponse = async (response) => {
     }
     throw new Error(data.detail || 'API request failed');
   }
-  
+
   return data;
 };
 
@@ -71,7 +71,7 @@ export const registerCaregiver = async (caregiverData) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(caregiverData)
   });
-  
+
   return handleResponse(response);
 };
 
@@ -84,22 +84,22 @@ export const loginCaregiver = async (email, password) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
   });
-  
+
   const data = await handleResponse(response);
-  
+
   // Store tokens and caregiver info
   if (data.access_token) {
     localStorage.setItem('access_token', data.access_token);
     localStorage.setItem('refresh_token', data.refresh_token);
     localStorage.setItem('caregiver_id', data.caregiver.caregiver_id);
     localStorage.setItem('caregiver_name', `${data.caregiver.first_name} ${data.caregiver.last_name}`);
-    
+
     // Store profile photo if available
     if (data.caregiver.profile_photo) {
       localStorage.setItem('profile_photo', data.caregiver.profile_photo);
     }
   }
-  
+
   return data;
 };
 
@@ -122,7 +122,7 @@ export const getCaregiverProfile = async () => {
       ...getAuthHeader()
     }
   });
-  
+
   return handleResponse(response);
 };
 
@@ -138,7 +138,7 @@ export const updateCaregiverProfile = async (updateData) => {
     },
     body: JSON.stringify(updateData)
   });
-  
+
   return handleResponse(response);
 };
 
@@ -158,7 +158,7 @@ export const changePassword = async (oldPassword, newPassword, confirmNewPasswor
       confirm_new_password: confirmNewPassword
     })
   });
-  
+
   return handleResponse(response);
 };
 
@@ -173,7 +173,7 @@ export const deleteCaregiverAccount = async () => {
       ...getAuthHeader()
     }
   });
-  
+
   return handleResponse(response);
 };
 
@@ -189,7 +189,7 @@ export const linkPatient = async (patientId) => {
     },
     body: JSON.stringify({ patient_id: patientId })
   });
-  
+
   return handleResponse(response);
 };
 
@@ -205,7 +205,7 @@ export const unlinkPatient = async (patientId) => {
     },
     body: JSON.stringify({ patient_id: patientId })
   });
-  
+
   return handleResponse(response);
 };
 
@@ -220,8 +220,30 @@ export const getLinkedPatients = async () => {
       ...getAuthHeader()
     }
   });
-  
+
   return handleResponse(response);
+};
+
+/**
+ * Get linked patients with full details
+ */
+export const getLinkedPatientsDetails = async () => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/patients/details`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get patient profile photo URL
+ */
+export const getPatientProfilePhotoUrl = (userId) => {
+  return `${API_BASE_URL}/api/user/profile-photo/${userId}`;
 };
 
 /**

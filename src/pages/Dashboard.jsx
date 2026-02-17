@@ -1,17 +1,56 @@
+import { useState, useEffect } from 'react';
 import { Download, MessageSquare, Brain, Gamepad2, Bell, Calendar, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Avatar from '../components/common/Avatar';
-import { elderlyUsers, generateWeeklyReport } from '../data/mockData';
+import { generateWeeklyReport } from '../data/mockData';
+import { getLinkedPatientsDetails, getPatientProfilePhotoUrl } from '../services/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Using first user for demo - in real app, user would be selected
-  const user = elderlyUsers[0];
-  const weeklyReport = generateWeeklyReport(user.id);
+  // Fetch linked patients from API
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const data = await getLinkedPatientsDetails();
+        if (data.success && data.patients) {
+          setPatients(data.patients);
+        }
+      } catch (err) {
+        console.error('Failed to fetch patients:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPatients();
+  }, []);
+
+  // Use first linked patient or fallback
+  const user = patients.length > 0
+    ? {
+      name: patients[0].full_name || 'Patient',
+      age: patients[0].age || 'N/A',
+      gender: patients[0].gender || 'N/A',
+      condition: patients[0].medical_conditions?.join(', ') || 'Not specified',
+      status: patients[0].account_status || 'active',
+      lastActivity: 'Recently',
+      careLevel: 'Standard',
+      id: patients[0].user_id,
+      hasProfilePhoto: patients[0].has_profile_photo,
+      allergies: patients[0].allergies || [],
+      medicines: patients[0].medicines || [],
+      medicalHistory: patients[0].medical_history || ''
+    }
+    : { name: 'No Patient Linked', age: '-', gender: '-', condition: '-', status: '-', lastActivity: '-', careLevel: '-', id: null };
+
+  const weeklyReport = generateWeeklyReport(user.id || '1');
 
   const handleDownloadFinalReport = () => {
     alert('Downloading Final Weekly Report...');
@@ -87,11 +126,15 @@ const Dashboard = () => {
         <Card className="bg-primary/5 border-l-4 border-primary">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Avatar name={user.name} size="xl" />
+              <Avatar
+                name={user.name}
+                size="xl"
+                src={user.hasProfilePhoto && user.id ? getPatientProfilePhotoUrl(user.id) : null}
+              />
               <div>
                 <h2 className="text-2xl font-bold text-deepBlue mb-1">{user.name}</h2>
-                <p className="text-secondary mb-2">Age: {user.age} years | Gender: {user.gender}</p>
-                <p className="text-sm text-secondary">Condition: {user.condition} | Status: {user.status}</p>
+                <p className="text-gray-700 mb-2">Age: {user.age} years | Gender: {user.gender}</p>
+                <p className="text-sm text-gray-700">Condition: {user.condition} | Status: {user.status}</p>
               </div>
             </div>
             <div className="text-right">
@@ -133,7 +176,7 @@ const Dashboard = () => {
                       <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
                         <Icon className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold text-deepBlue">{module.name}</h3>
+                      <h3 className="text-xl font-bold text-gray-900">{module.name}</h3>
                     </div>
                     <Button variant="ghost" size="sm">View Details →</Button>
                   </div>
@@ -142,7 +185,7 @@ const Dashboard = () => {
                     {Object.entries(module.stats).map(([key, value]) => (
                       <div key={key} className="p-3 bg-secondaryBg rounded-lg">
                         <p className="text-xs text-secondary mb-1 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
-                        <p className="text-lg font-bold text-deepBlue">{value}</p>
+                        <p className="text-lg font-bold text-gray-900">{value}</p>
                       </div>
                     ))}
                   </div>
@@ -159,7 +202,7 @@ const Dashboard = () => {
           <div className="space-y-6">
             {/* Performance Overview */}
             <div>
-              <h3 className="text-lg font-semibold text-deepBlue mb-3">Performance Overview</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Performance Overview</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800 mb-1">Chat Engagement</p>
@@ -176,27 +219,23 @@ const Dashboard = () => {
                   <p className="text-2xl font-bold text-purple-900">Good</p>
                   <p className="text-xs text-purple-700 mt-1">{weeklyReport.games.avgPerformance}% avg score</p>
                 </div>
-                <div className={`p-4 rounded-lg border ${
-                  weeklyReport.reminders.complianceRate >= 80
+                <div className={`p-4 rounded-lg border ${weeklyReport.reminders.complianceRate >= 80
                     ? 'bg-green-50 border-green-200'
                     : 'bg-yellow-50 border-yellow-200'
-                }`}>
-                  <p className={`text-sm mb-1 ${
-                    weeklyReport.reminders.complianceRate >= 80 ? 'text-green-800' : 'text-yellow-800'
-                  }`}>Medication Adherence</p>
-                  <p className={`text-2xl font-bold ${
-                    weeklyReport.reminders.complianceRate >= 80 ? 'text-green-900' : 'text-yellow-900'
-                  }`}>{weeklyReport.reminders.complianceRate}%</p>
-                  <p className={`text-xs mt-1 ${
-                    weeklyReport.reminders.complianceRate >= 80 ? 'text-green-700' : 'text-yellow-700'
-                  }`}>{weeklyReport.reminders.completed}/{weeklyReport.reminders.completed + weeklyReport.reminders.missed} taken</p>
+                  }`}>
+                  <p className={`text-sm mb-1 ${weeklyReport.reminders.complianceRate >= 80 ? 'text-green-800' : 'text-yellow-800'
+                    }`}>Medication Adherence</p>
+                  <p className={`text-2xl font-bold ${weeklyReport.reminders.complianceRate >= 80 ? 'text-green-900' : 'text-yellow-900'
+                    }`}>{weeklyReport.reminders.complianceRate}%</p>
+                  <p className={`text-xs mt-1 ${weeklyReport.reminders.complianceRate >= 80 ? 'text-green-700' : 'text-yellow-700'
+                    }`}>{weeklyReport.reminders.completed}/{weeklyReport.reminders.completed + weeklyReport.reminders.missed} taken</p>
                 </div>
               </div>
             </div>
 
             {/* Key Highlights */}
             <div>
-              <h3 className="text-lg font-semibold text-deepBlue mb-3">Key Highlights</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Highlights</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                   <h4 className="text-sm font-semibold text-green-800 mb-2">✓ Strengths This Week</h4>
@@ -221,21 +260,21 @@ const Dashboard = () => {
 
             {/* Weekly Metrics */}
             <div>
-              <h3 className="text-lg font-semibold text-deepBlue mb-3">Weekly Metrics</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Weekly Metrics</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-secondaryBg rounded-lg">
                   <p className="text-sm text-secondary mb-1">Total Sessions</p>
-                  <p className="text-3xl font-bold text-deepBlue">
+                  <p className="text-3xl font-bold text-gray-900">
                     {weeklyReport.chat.totalConversations + weeklyReport.games.totalGamesPlayed}
                   </p>
                 </div>
                 <div className="text-center p-4 bg-secondaryBg rounded-lg">
                   <p className="text-sm text-secondary mb-1">Active Days</p>
-                  <p className="text-3xl font-bold text-deepBlue">7/7</p>
+                  <p className="text-3xl font-bold text-gray-900">7/7</p>
                 </div>
                 <div className="text-center p-4 bg-secondaryBg rounded-lg">
                   <p className="text-sm text-secondary mb-1">Avg Daily Time</p>
-                  <p className="text-3xl font-bold text-deepBlue">2.5 hrs</p>
+                  <p className="text-3xl font-bold text-gray-900">2.5 hrs</p>
                 </div>
                 <div className="text-center p-4 bg-secondaryBg rounded-lg">
                   <p className="text-sm text-secondary mb-1">Week Improvement</p>

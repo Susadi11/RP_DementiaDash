@@ -76,7 +76,7 @@ const CaregiverRegister = () => {
             </p>
 
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
-              <p className="text-sm font-medium text-deepBlue mb-2">
+              <p className="text-sm font-medium text-gray-900 mb-2">
                 Your Unique Caregiver ID
               </p>
               <div className="bg-white rounded-lg p-4 mb-3">
@@ -95,7 +95,7 @@ const CaregiverRegister = () => {
                   <span className="text-white text-sm font-bold">!</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-deepBlue mb-2">
+                  <h3 className="font-semibold text-gray-900 mb-2">
                     Important: When Registering Elder Persons
                   </h3>
                   <p className="text-sm text-secondary mb-2">
@@ -158,14 +158,14 @@ const CaregiverRegister = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information Section */}
           <div>
-            <h2 className="text-lg font-semibold text-deepBlue mb-4 pb-2 border-b border-border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-border">
               Personal Information
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Full Name */}
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-900 mb-2">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -185,7 +185,7 @@ const CaregiverRegister = () => {
 
               {/* Date of Birth */}
               <div>
-                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-900 mb-2">
                   Date of Birth <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -204,7 +204,7 @@ const CaregiverRegister = () => {
 
               {/* NIC */}
               <div>
-                <label htmlFor="nic" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="nic" className="block text-sm font-medium text-gray-900 mb-2">
                   National Identity Card (NIC) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -224,7 +224,7 @@ const CaregiverRegister = () => {
 
               {/* Phone */}
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-900 mb-2">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -244,7 +244,7 @@ const CaregiverRegister = () => {
 
               {/* Email */}
               <div className="md:col-span-2">
-                <label htmlFor="email" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
                   Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -264,7 +264,7 @@ const CaregiverRegister = () => {
 
               {/* Address */}
               <div className="md:col-span-2">
-                <label htmlFor="address" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="address" className="block text-sm font-medium text-gray-900 mb-2">
                   Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -286,14 +286,14 @@ const CaregiverRegister = () => {
 
           {/* Professional Information Section */}
           <div>
-            <h2 className="text-lg font-semibold text-deepBlue mb-4 pb-2 border-b border-border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-border">
               Professional Information
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Ministry Registration Number */}
               <div>
-                <label htmlFor="ministryRegNo" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="ministryRegNo" className="block text-sm font-medium text-gray-900 mb-2">
                   Ministry Registration Number <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -316,7 +316,7 @@ const CaregiverRegister = () => {
 
               {/* Organization */}
               <div>
-                <label htmlFor="organization" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="organization" className="block text-sm font-medium text-gray-900 mb-2">
                   Organization/Facility
                 </label>
                 <div className="relative">
@@ -340,14 +340,14 @@ const CaregiverRegister = () => {
 
           {/* Account Security Section */}
           <div>
-            <h2 className="text-lg font-semibold text-deepBlue mb-4 pb-2 border-b border-border">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-border">
               Account Security
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-900 mb-2">
                   Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -368,7 +368,7 @@ const CaregiverRegister = () => {
 
               {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-deepBlue mb-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-900 mb-2">
                   Confirm Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">

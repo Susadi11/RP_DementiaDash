@@ -7,13 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#1a1a1a',
-        deepBlue: '#2d2d2d',
-        lightBlue: '#a8a8a8',
-        secondary: '#6b7280',
+        primary: '#0EA5E9',
+        deepBlue: '#1E3A8A',
+        lightBlue: '#7DD3FC',
+        secondary: '#64748B',
+        accent: '#0284C7',
         background: '#FFFFFF',
-        secondaryBg: '#f5f5f5',
-        border: '#e0e0e0',
+        secondaryBg: '#F9FAFB',
+        border: '#E5E7EB',
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'system-ui', 'sans-serif'],

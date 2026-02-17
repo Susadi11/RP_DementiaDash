@@ -17,7 +17,7 @@ const Navbar = () => {
     // First try to get from localStorage
     const storedName = localStorage.getItem('caregiver_name');
     const storedPhoto = localStorage.getItem('profile_photo');
-    
+
     if (storedName) {
       setCaregiverName(storedName);
     }
@@ -33,7 +33,7 @@ const Navbar = () => {
         const fullName = `${first_name} ${last_name}`;
         setCaregiverName(fullName);
         setProfilePhoto(profile_photo);
-        
+
         // Update localStorage
         localStorage.setItem('caregiver_name', fullName);
         if (profile_photo) {
@@ -55,14 +55,23 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-border px-6 py-4 sticky top-0 z-40">
+    <nav className="bg-white border-b border-border px-6 py-2 sticky top-0 z-40">
       <div className="flex items-center justify-between">
         {/* Logo and Title */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-xl">H</span>
+          <div className="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden">
+            <img
+              src="/Hale_logo.png"
+              alt="Hale Logo"
+              className="w-20 h-20 object-contain"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.classList.add('bg-primary');
+                e.target.parentElement.innerHTML = '<span class="text-white font-bold text-xl">H</span>';
+              }}
+            />
           </div>
-          <h1 className="text-2xl font-bold text-deepBlue">Hale Caregiver Portal</h1>
+          <h1 className="text-2xl font-bold text-deepBlue">Caregiver Portal</h1>
         </div>
 
         {/* Search Bar */}
@@ -81,7 +90,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           {/* Notifications */}
           <button className="relative p-2 hover:bg-secondaryBg rounded-xl transition-colors">
-            <Bell className="w-6 h-6 text-deepBlue" />
+            <Bell className="w-6 h-6 text-gray-700" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
 
@@ -103,7 +112,7 @@ const Navbar = () => {
                 </div>
               )}
               <div className="text-left hidden md:block">
-                <p className="text-sm font-semibold text-deepBlue">
+                <p className="text-sm font-semibold text-gray-800">
                   {caregiverName || 'Loading...'}
                 </p>
                 <p className="text-xs text-secondary">Caregiver</p>
@@ -115,11 +124,11 @@ const Navbar = () => {
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-border py-2 z-50">
                 <button
                   onClick={handleProfileClick}
-                  className="w-full text-left block px-4 py-2 text-sm text-deepBlue hover:bg-secondaryBg"
+                  className="w-full text-left block px-4 py-2 text-sm text-gray-800 hover:bg-secondaryBg"
                 >
                   Profile Settings
                 </button>
-                <a href="/settings" className="block px-4 py-2 text-sm text-deepBlue hover:bg-secondaryBg">
+                <a href="/settings" className="block px-4 py-2 text-sm text-gray-800 hover:bg-secondaryBg">
                   Preferences
                 </a>
                 <hr className="my-2 border-border" />

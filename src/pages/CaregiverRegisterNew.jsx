@@ -99,14 +99,14 @@ const CaregiverRegister = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-6">
         <Card className="w-full max-w-2xl backdrop-blur-xl bg-white/90" shadow="shadow-2xl" padding="p-10">
           <div className="text-center">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-xl">
               <CheckCircle2 className="w-12 h-12 text-white" />
             </div>
 
-            <h2 className="text-4xl font-bold text-gray-900 mb-3">
+            <h2 className="text-4xl font-bold text-deepBlue mb-3">
               Registration Successful!
             </h2>
 
@@ -114,7 +114,7 @@ const CaregiverRegister = () => {
               Your caregiver account has been created successfully.
             </p>
 
-            <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-8 mb-8">
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8 mb-8">
               <p className="text-sm font-semibold text-gray-700 mb-3">
                 Your Unique Caregiver ID
               </p>
@@ -158,7 +158,7 @@ const CaregiverRegister = () => {
             <Button
               onClick={() => navigate('/login')}
               fullWidth
-              className="py-4 text-base font-semibold bg-gray-900 hover:bg-black transform hover:scale-[1.02] transition-all shadow-lg"
+              className="py-4 text-base font-semibold bg-primary hover:bg-accent transform hover:scale-[1.02] transition-all shadow-lg"
             >
               Continue to Login
             </Button>
@@ -169,11 +169,11 @@ const CaregiverRegister = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
         <button
           onClick={() => navigate('/login')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors font-medium"
+          className="flex items-center gap-2 text-gray-600 hover:text-primary mb-6 transition-colors font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Login
@@ -181,13 +181,13 @@ const CaregiverRegister = () => {
 
         <Card className="backdrop-blur-xl bg-white/90" shadow="shadow-2xl" padding="p-10">
           <div className="text-center mb-10">
-            <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-black rounded-3xl flex items-center justify-center shadow-2xl mx-auto mb-6">
-              <Users className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl mx-auto mb-6 overflow-hidden">
+              <img src="/Hale_logo.png" alt="Hale Logo" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            <h1 className="text-4xl font-bold text-deepBlue mb-3">
               Caregiver Registration
             </h1>
-            <p className="text-gray-500 text-lg">Join the Hale community and start caring</p>
+            <p className="text-gray-600 text-lg">Join the Hale community and start caring</p>
           </div>
 
           {error && (
@@ -200,8 +200,8 @@ const CaregiverRegister = () => {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-gray-700" />
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
                 Personal Information
               </h3>
 
@@ -263,7 +263,7 @@ const CaregiverRegister = () => {
                     value={formData.first_name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     placeholder="John"
                   />
                 </div>
@@ -277,7 +277,7 @@ const CaregiverRegister = () => {
                     value={formData.last_name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     placeholder="Doe"
                   />
                 </div>
@@ -291,7 +291,7 @@ const CaregiverRegister = () => {
                     value={formData.nic_number}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     placeholder="123456789V"
                   />
                 </div>
@@ -304,7 +304,7 @@ const CaregiverRegister = () => {
                     value={formData.gender}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   >
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
@@ -317,8 +317,8 @@ const CaregiverRegister = () => {
 
             {/* Contact Information */}
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Phone className="w-5 h-5 text-gray-700" />
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Phone className="w-5 h-5 text-primary" />
                 Contact Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -334,7 +334,7 @@ const CaregiverRegister = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       placeholder="john.doe@example.com"
                     />
                   </div>
@@ -351,7 +351,7 @@ const CaregiverRegister = () => {
                       value={formData.mobile_number}
                       onChange={handleChange}
                       required
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       placeholder="+94 71 234 5678"
                     />
                   </div>
@@ -368,7 +368,7 @@ const CaregiverRegister = () => {
                       value={formData.district}
                       onChange={handleChange}
                       required
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       placeholder="Colombo"
                     />
                   </div>
@@ -378,8 +378,8 @@ const CaregiverRegister = () => {
 
             {/* Emergency Contact */}
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Shield className="w-5 h-5 text-gray-700" />
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
                 Emergency Contact
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -393,7 +393,7 @@ const CaregiverRegister = () => {
                     value={formData.emergency_contact_name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     placeholder="Emergency contact name"
                   />
                 </div>
@@ -407,7 +407,7 @@ const CaregiverRegister = () => {
                     value={formData.emergency_contact_number}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     placeholder="+94 71 234 5678"
                   />
                 </div>
@@ -416,8 +416,8 @@ const CaregiverRegister = () => {
 
             {/* Security */}
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Lock className="w-5 h-5 text-gray-700" />
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-primary" />
                 Security
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -434,7 +434,7 @@ const CaregiverRegister = () => {
                       onChange={handleChange}
                       required
                       minLength={8}
-                      className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                      className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       placeholder="Min. 8 characters"
                     />
                     <button
@@ -458,7 +458,7 @@ const CaregiverRegister = () => {
                       value={formData.confirm_password}
                       onChange={handleChange}
                       required
-                      className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                      className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       placeholder="Confirm password"
                     />
                     <button
@@ -474,7 +474,7 @@ const CaregiverRegister = () => {
             </div>
 
             {/* Declaration */}
-            <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-6">
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
@@ -483,7 +483,7 @@ const CaregiverRegister = () => {
                   checked={formData.declaration_accepted}
                   onChange={handleChange}
                   required
-                  className="mt-1 w-5 h-5 text-gray-900 bg-white border-gray-300 rounded focus:ring-2 focus:ring-gray-900"
+                  className="mt-1 w-5 h-5 text-primary bg-white border-gray-300 rounded focus:ring-2 focus:ring-primary"
                 />
                 <label htmlFor="declaration" className="text-sm text-gray-700">
                   <span className="font-semibold">I hereby declare that</span> all the information provided above is true and accurate to the best of my knowledge. I understand that providing false information may result in the termination of my account.
@@ -496,7 +496,7 @@ const CaregiverRegister = () => {
               type="submit"
               fullWidth
               disabled={loading}
-              className="py-4 text-base font-semibold bg-gray-900 hover:bg-black transform hover:scale-[1.02] transition-all shadow-lg"
+              className="py-4 text-base font-semibold bg-primary hover:bg-accent transform hover:scale-[1.02] transition-all shadow-lg"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -514,7 +514,7 @@ const CaregiverRegister = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="font-semibold text-gray-900 hover:text-black transition-colors"
+                  className="font-semibold text-primary hover:text-accent transition-colors"
                 >
                   Sign In
                 </button>

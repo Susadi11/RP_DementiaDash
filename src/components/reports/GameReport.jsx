@@ -14,11 +14,11 @@ const GameReport = ({ data }) => {
         {/* Key Metrics */}
         <div>
           <p className="text-sm text-secondary mb-1">Games Played</p>
-          <p className="text-3xl font-bold text-deepBlue">{data.totalGamesPlayed}</p>
+          <p className="text-3xl font-bold text-gray-900">{data.totalGamesPlayed}</p>
         </div>
         <div>
           <p className="text-sm text-secondary mb-1">Total Time</p>
-          <p className="text-3xl font-bold text-deepBlue">{data.totalTime} hrs</p>
+          <p className="text-3xl font-bold text-gray-900">{data.totalTime} hrs</p>
         </div>
         <div>
           <p className="text-sm text-secondary mb-1">Avg. Performance</p>
@@ -28,7 +28,7 @@ const GameReport = ({ data }) => {
 
       {/* Games Chart */}
       <div className="mb-6">
-        <p className="text-sm font-semibold text-deepBlue mb-3">Sessions by Game</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Sessions by Game</p>
         <BarChart
           data={gameData}
           dataKey="sessions"
@@ -39,13 +39,13 @@ const GameReport = ({ data }) => {
 
       {/* Individual Game Performance */}
       <div>
-        <p className="text-sm font-semibold text-deepBlue mb-3">Game Performance Details</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Game Performance Details</p>
         <div className="space-y-3">
           {data.games.map((game, index) => (
             <div key={index} className="p-4 bg-secondaryBg rounded-lg">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <p className="font-semibold text-deepBlue">{game.name}</p>
+                  <p className="font-semibold text-gray-900">{game.name}</p>
                   <p className="text-sm text-secondary">{game.sessionsPlayed} sessions</p>
                 </div>
                 <div className="text-right">
@@ -55,7 +55,7 @@ const GameReport = ({ data }) => {
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <span className="text-secondary">Best Time:</span>
-                <span className="font-medium text-deepBlue">{game.bestTime}</span>
+                <span className="font-medium text-gray-900">{game.bestTime}</span>
                 <span className={`ml-auto ${game.improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {game.improvement >= 0 ? '↑' : '↓'} {Math.abs(game.improvement)}% improvement
                 </span>
@@ -67,7 +67,7 @@ const GameReport = ({ data }) => {
 
       {/* Engagement Insights */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-primary/20">
-        <p className="text-sm font-semibold text-deepBlue mb-2">Engagement Insights</p>
+        <p className="text-sm font-semibold text-gray-900 mb-2">Engagement Insights</p>
         <p className="text-sm text-secondary">{data.engagementInsight}</p>
       </div>
     </ModuleCard>

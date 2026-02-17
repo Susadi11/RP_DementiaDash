@@ -21,7 +21,7 @@ const UserProfile = () => {
     return (
       <Layout>
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-deepBlue">User not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900">User not found</h2>
           <Button className="mt-4" onClick={() => navigate('/users')}>
             Back to Users
           </Button>
@@ -127,7 +127,7 @@ const UserProfile = () => {
                 className={`pb-4 px-2 font-medium transition-colors relative ${
                   activeTab === tab.id
                     ? 'text-primary border-b-2 border-primary'
-                    : 'text-secondary hover:text-deepBlue'
+                    : 'text-secondary hover:text-gray-900'
                 }`}
               >
                 {tab.label}
@@ -142,25 +142,25 @@ const UserProfile = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Activity */}
               <Card>
-                <h3 className="text-xl font-bold text-deepBlue mb-4">Recent Activity</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-secondaryBg rounded-lg">
                     <div>
-                      <p className="font-medium text-deepBlue">Completed MMSE Assessment</p>
+                      <p className="font-medium text-gray-900">Completed MMSE Assessment</p>
                       <p className="text-sm text-secondary">Score: {weeklyReport.cognitive.latestScore}/30</p>
                     </div>
                     <span className="text-xs text-secondary">2 hours ago</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-secondaryBg rounded-lg">
                     <div>
-                      <p className="font-medium text-deepBlue">Played Memory Match</p>
+                      <p className="font-medium text-gray-900">Played Memory Match</p>
                       <p className="text-sm text-secondary">Score: 85%</p>
                     </div>
                     <span className="text-xs text-secondary">5 hours ago</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-secondaryBg rounded-lg">
                     <div>
-                      <p className="font-medium text-deepBlue">Conversation Session</p>
+                      <p className="font-medium text-gray-900">Conversation Session</p>
                       <p className="text-sm text-secondary">Duration: 15 minutes</p>
                     </div>
                     <span className="text-xs text-secondary">1 day ago</span>
@@ -170,12 +170,12 @@ const UserProfile = () => {
 
               {/* Weekly Summary */}
               <Card>
-                <h3 className="text-xl font-bold text-deepBlue mb-4">This Week Summary</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">This Week Summary</h3>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-secondary">Chat Sessions</span>
-                      <span className="font-semibold text-deepBlue">{weeklyReport.chat.totalConversations}</span>
+                      <span className="font-semibold text-gray-900">{weeklyReport.chat.totalConversations}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-primary h-2 rounded-full" style={{width: '75%'}}></div>
@@ -184,7 +184,7 @@ const UserProfile = () => {
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-secondary">Games Played</span>
-                      <span className="font-semibold text-deepBlue">{weeklyReport.games.totalGamesPlayed}</span>
+                      <span className="font-semibold text-gray-900">{weeklyReport.games.totalGamesPlayed}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-primary h-2 rounded-full" style={{width: '60%'}}></div>
@@ -206,7 +206,7 @@ const UserProfile = () => {
 
           {activeTab === 'reports' && (
             <Card>
-              <h3 className="text-xl font-bold text-deepBlue mb-4">Weekly Reports</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Weekly Reports</h3>
               <p className="text-secondary mb-4">View detailed weekly reports for this user</p>
               <Button onClick={() => navigate(`/users/${userId}/reports`)}>
                 Go to Weekly Reports
@@ -216,16 +216,16 @@ const UserProfile = () => {
 
           {activeTab === 'health' && (
             <Card>
-              <h3 className="text-xl font-bold text-deepBlue mb-4">Health Data</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Health Data</h3>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-deepBlue mb-2">Current Medications</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Current Medications</h4>
                   <div className="space-y-2">
                     {weeklyReport.reminders.medications.map((med, index) => (
                       <div key={index} className="p-3 bg-secondaryBg rounded-lg">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-medium text-deepBlue">{med.name}</p>
+                            <p className="font-medium text-gray-900">{med.name}</p>
                             <p className="text-sm text-secondary">{med.dosage} - {med.frequency}</p>
                             <p className="text-xs text-secondary mt-1">Times: {med.times.join(', ')}</p>
                           </div>

@@ -47,19 +47,19 @@ const CognitiveReport = ({ data }) => {
 
           <div>
             <p className="text-sm text-secondary mb-1">Test Frequency</p>
-            <p className="text-lg font-semibold text-deepBlue">{data.testFrequency}</p>
+            <p className="text-lg font-semibold text-gray-900">{data.testFrequency}</p>
           </div>
         </div>
 
         {/* Score Breakdown */}
         <div>
-          <p className="text-sm font-semibold text-deepBlue mb-3">Score Breakdown</p>
+          <p className="text-sm font-semibold text-gray-900 mb-3">Score Breakdown</p>
           <div className="space-y-3">
             {data.breakdown.map((category, index) => (
               <div key={index}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-secondary">{category.name}</span>
-                  <span className="font-semibold text-deepBlue">
+                  <span className="font-semibold text-gray-900">
                     {category.score}/{category.max}
                   </span>
                 </div>
@@ -77,7 +77,7 @@ const CognitiveReport = ({ data }) => {
 
       {/* Score Trend */}
       <div className="mt-6">
-        <p className="text-sm font-semibold text-deepBlue mb-3">Score Trend (Last 4 Weeks)</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Score Trend (Last 4 Weeks)</p>
         <LineChart
           data={scoreHistory}
           dataKey="score"
@@ -88,7 +88,7 @@ const CognitiveReport = ({ data }) => {
 
       {/* Recommendations */}
       <div className="mt-6">
-        <p className="text-sm font-semibold text-deepBlue mb-3">Recommendations</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Recommendations</p>
         <ul className="space-y-2">
           {data.recommendations.map((rec, index) => (
             <li key={index} className="flex items-start space-x-2">

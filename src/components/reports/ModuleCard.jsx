@@ -12,7 +12,7 @@ const ModuleCard = ({ title, icon: Icon, children, defaultExpanded = false }) =>
           <div className="bg-primary p-2.5 rounded-xl">
             <Icon className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-xl font-bold text-deepBlue">{title}</h3>
+          <h3 className="text-xl font-bold text-gray-900">{title}</h3>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
