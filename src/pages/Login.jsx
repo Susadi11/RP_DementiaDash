@@ -44,19 +44,23 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md backdrop-blur-xl bg-white/90" shadow="shadow-2xl" padding="p-10">
         <div className="flex justify-center mb-8">
-          <div className="w-24 h-24 bg-gradient-to-br from-gray-800 to-black rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300">
-            <span className="text-white font-bold text-5xl">H</span>
+          <div className="w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300 overflow-hidden">
+            <img
+              src="/Hale_logo.png"
+              alt="Hale Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
 
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-4xl font-bold text-deepBlue mb-3">
             Welcome Back
           </h1>
-          <p className="text-gray-500 text-lg">Hale Caregiver Portal</p>
+          <p className="text-gray-600 text-lg">Hale Caregiver Portal</p>
         </div>
 
         {error && (
@@ -81,7 +85,7 @@ const Login = () => {
                 onChange={handleChange}
                 required
                 placeholder="your.email@example.com"
-                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all hover:border-gray-300"
+                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all hover:border-primary/40"
               />
             </div>
           </div>
@@ -100,7 +104,7 @@ const Login = () => {
                 onChange={handleChange}
                 required
                 placeholder="Enter your password"
-                className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all hover:border-gray-300"
+                className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all hover:border-primary/40"
               />
               <button
                 type="button"
@@ -120,13 +124,13 @@ const Login = () => {
                 name="remember"
                 checked={formData.remember}
                 onChange={handleChange}
-                className="w-4 h-4 text-gray-900 bg-gray-50 border-gray-300 rounded focus:ring-2 focus:ring-gray-900"
+                className="w-4 h-4 text-primary bg-gray-50 border-gray-300 rounded focus:ring-2 focus:ring-primary"
               />
               <label htmlFor="remember" className="ml-2 text-sm font-medium text-gray-600">
                 Remember me
               </label>
             </div>
-            <a href="#" className="text-sm font-semibold text-gray-900 hover:text-black transition-colors">
+            <a href="#" className="text-sm font-semibold text-primary hover:text-accent transition-colors">
               Forgot password?
             </a>
           </div>
@@ -135,7 +139,7 @@ const Login = () => {
             type="submit"
             fullWidth
             disabled={loading}
-            className="py-4 text-base font-semibold bg-gray-900 hover:bg-black transform hover:scale-[1.02] transition-all shadow-lg"
+            className="py-4 text-base font-semibold bg-primary hover:bg-accent transform hover:scale-[1.02] transition-all shadow-lg"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -162,7 +166,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => navigate('/register/caregiver')}
-                className="font-semibold text-gray-900 hover:text-black transition-colors"
+                className="font-semibold text-primary hover:text-accent transition-colors"
               >
                 Create Account
               </button>

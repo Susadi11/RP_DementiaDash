@@ -51,7 +51,7 @@ const GameModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-deepBlue mb-1">{user.name}</h2>
-              <p className="text-secondary">Age: {user.age} years | Status: {user.status}</p>
+              <p className="text-gray-700">Age: {user.age} years | Status: {user.status}</p>
             </div>
             <div className="text-right">
               <div className="flex items-center space-x-2 text-secondary mb-1">
@@ -67,11 +67,11 @@ const GameModule = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Games Played</p>
-            <p className="text-3xl font-bold text-deepBlue">{gamesData.totalGamesPlayed}</p>
+            <p className="text-3xl font-bold text-gray-900">{gamesData.totalGamesPlayed}</p>
           </Card>
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Total Time</p>
-            <p className="text-3xl font-bold text-deepBlue">{gamesData.totalTime} hrs</p>
+            <p className="text-3xl font-bold text-gray-900">{gamesData.totalTime} hrs</p>
           </Card>
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Avg Performance</p>
@@ -89,7 +89,7 @@ const GameModule = () => {
         <Card className="border-l-4 border-primary">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-deepBlue">Memory Match</h3>
+              <h3 className="text-xl font-bold text-gray-900">Memory Match</h3>
               <p className="text-sm text-secondary">Date: 2024-01-15 | Duration: 15 minutes</p>
             </div>
             <div className="text-right">
@@ -101,7 +101,7 @@ const GameModule = () => {
             <div className="p-4 bg-secondaryBg rounded-lg">
               <p className="text-xs text-secondary mb-1">Accuracy</p>
               <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold text-deepBlue">88%</p>
+                <p className="text-2xl font-bold text-gray-900">88%</p>
                 <div className="flex items-center space-x-1">
                   {getChangeIcon(5)}
                   <span className="text-sm font-semibold text-green-600">+5</span>
@@ -112,7 +112,7 @@ const GameModule = () => {
             <div className="p-4 bg-secondaryBg rounded-lg">
               <p className="text-xs text-secondary mb-1">Speed</p>
               <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold text-deepBlue">75 sec</p>
+                <p className="text-2xl font-bold text-gray-900">75 sec</p>
                 <div className="flex items-center space-x-1">
                   {getChangeIcon(3)}
                   <span className="text-sm font-semibold text-green-600">+3</span>
@@ -123,7 +123,7 @@ const GameModule = () => {
             <div className="p-4 bg-secondaryBg rounded-lg">
               <p className="text-xs text-secondary mb-1">Focus</p>
               <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold text-deepBlue">82%</p>
+                <p className="text-2xl font-bold text-gray-900">82%</p>
                 <div className="flex items-center space-x-1">
                   {getChangeIcon(4)}
                   <span className="text-sm font-semibold text-green-600">+4</span>
@@ -138,7 +138,7 @@ const GameModule = () => {
         <Card className="border-l-4 border-primary">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-deepBlue">Word Puzzle</h3>
+              <h3 className="text-xl font-bold text-gray-900">Word Puzzle</h3>
               <p className="text-sm text-secondary">Date: 2024-01-16 | Duration: 20 minutes</p>
             </div>
             <div className="text-right">
@@ -150,7 +150,7 @@ const GameModule = () => {
             <div className="p-4 bg-secondaryBg rounded-lg">
               <p className="text-xs text-secondary mb-1">Accuracy</p>
               <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold text-deepBlue">94%</p>
+                <p className="text-2xl font-bold text-gray-900">94%</p>
                 <div className="flex items-center space-x-1">
                   {getChangeIcon(6)}
                   <span className="text-sm font-semibold text-green-600">+6</span>
@@ -161,7 +161,7 @@ const GameModule = () => {
             <div className="p-4 bg-secondaryBg rounded-lg">
               <p className="text-xs text-secondary mb-1">Vocabulary</p>
               <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold text-deepBlue">95%</p>
+                <p className="text-2xl font-bold text-gray-900">95%</p>
                 <div className="flex items-center space-x-1">
                   {getChangeIcon(8)}
                   <span className="text-sm font-semibold text-green-600">+8</span>
@@ -172,7 +172,7 @@ const GameModule = () => {
             <div className="p-4 bg-secondaryBg rounded-lg">
               <p className="text-xs text-secondary mb-1">Focus</p>
               <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold text-deepBlue">88%</p>
+                <p className="text-2xl font-bold text-gray-900">88%</p>
                 <div className="flex items-center space-x-1">
                   {getChangeIcon(6)}
                   <span className="text-sm font-semibold text-green-600">+6</span>
@@ -185,11 +185,11 @@ const GameModule = () => {
 
         {/* Popular Games */}
         <Card>
-          <h3 className="text-xl font-bold text-deepBlue mb-4">Popular Games This Week</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Popular Games This Week</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {gamesData.games.map((game, idx) => (
               <div key={idx} className="p-4 bg-secondaryBg rounded-lg flex items-center justify-between">
-                <span className="text-deepBlue font-medium">{game.name}</span>
+                <span className="text-gray-900 font-medium">{game.name}</span>
                 <span className="px-3 py-1 bg-primary text-white rounded-full text-sm">
                   {game.sessionsPlayed} plays
                 </span>
@@ -200,7 +200,7 @@ const GameModule = () => {
 
         {/* Performance Insights */}
         <Card>
-          <h3 className="text-xl font-bold text-deepBlue mb-4">Performance Insights</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Performance Insights</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
               <h4 className="text-sm font-semibold text-green-800 mb-2">Strong Areas</h4>

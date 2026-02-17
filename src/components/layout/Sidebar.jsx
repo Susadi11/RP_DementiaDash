@@ -40,22 +40,6 @@ const Sidebar = () => {
         })}
       </nav>
 
-      {/* Quick Stats Section */}
-      <div className="p-4 mt-8">
-        <div className="bg-primary/10 rounded-2xl p-4 border border-primary/20">
-          <h3 className="text-sm font-semibold text-deepBlue mb-3">Quick Stats</h3>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs text-secondary">Active Users</p>
-              <p className="text-2xl font-bold text-deepBlue">12</p>
-            </div>
-            <div>
-              <p className="text-xs text-secondary">Pending Reports</p>
-              <p className="text-2xl font-bold text-deepBlue">3</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </aside>
   );
 };

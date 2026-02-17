@@ -10,7 +10,7 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, gradient = fals
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-secondary text-sm font-medium mb-2">{title}</p>
-          <p className="text-4xl font-bold text-deepBlue mb-2">{value}</p>
+          <p className="text-4xl font-bold text-gray-900 mb-2">{value}</p>
           {trend && (
             <div className={`flex items-center text-sm ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
               <span className="font-medium">{trendValue}</span>

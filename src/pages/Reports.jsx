@@ -32,7 +32,7 @@ const Reports = () => {
                     <Avatar name={user.name} size="lg" />
                     <div>
                       <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="text-xl font-bold text-deepBlue">{user.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">{user.name}</h3>
                         <Badge variant={user.status === 'active' ? 'active' : 'inactive'}>
                           {user.status}
                         </Badge>
@@ -46,7 +46,7 @@ const Reports = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
                     <div className="text-center p-3 bg-secondaryBg rounded-lg">
                       <p className="text-xs text-secondary mb-1">Overall Score</p>
-                      <p className="text-2xl font-bold text-deepBlue">{report.overallScore}</p>
+                      <p className="text-2xl font-bold text-gray-900">{report.overallScore}</p>
                     </div>
                     <div className="text-center p-3 bg-secondaryBg rounded-lg">
                       <p className="text-xs text-secondary mb-1">Cognitive</p>
@@ -91,24 +91,24 @@ const Reports = () => {
           <Card className="text-center">
             <User className="w-8 h-8 text-primary mx-auto mb-2" />
             <p className="text-sm text-secondary mb-1">Total Users</p>
-            <p className="text-3xl font-bold text-deepBlue">{elderlyUsers.length}</p>
+            <p className="text-3xl font-bold text-gray-900">{elderlyUsers.length}</p>
           </Card>
           <Card className="text-center">
             <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
             <p className="text-sm text-secondary mb-1">Active Users</p>
-            <p className="text-3xl font-bold text-deepBlue">
+            <p className="text-3xl font-bold text-gray-900">
               {elderlyUsers.filter(u => u.status === 'active').length}
             </p>
           </Card>
           <Card className="text-center">
             <Calendar className="w-8 h-8 text-primary mx-auto mb-2" />
             <p className="text-sm text-secondary mb-1">Reports Generated</p>
-            <p className="text-3xl font-bold text-deepBlue">{elderlyUsers.length}</p>
+            <p className="text-3xl font-bold text-gray-900">{elderlyUsers.length}</p>
           </Card>
           <Card className="text-center">
             <AlertCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
             <p className="text-sm text-secondary mb-1">Needs Attention</p>
-            <p className="text-3xl font-bold text-deepBlue">
+            <p className="text-3xl font-bold text-gray-900">
               {elderlyUsers.filter(u => {
                 const r = generateWeeklyReport(u.id);
                 return r.reminders.complianceRate < 80;

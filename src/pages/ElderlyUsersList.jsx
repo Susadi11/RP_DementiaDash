@@ -72,8 +72,8 @@ const ElderlyUsersList = () => {
           {/* Results Count */}
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-sm text-secondary">
-              Showing <span className="font-semibold text-deepBlue">{filteredUsers.length}</span> of{' '}
-              <span className="font-semibold text-deepBlue">{elderlyUsers.length}</span> users
+              Showing <span className="font-semibold text-gray-900">{filteredUsers.length}</span> of{' '}
+              <span className="font-semibold text-gray-900">{elderlyUsers.length}</span> users
             </p>
           </div>
         </Card>
@@ -91,7 +91,7 @@ const ElderlyUsersList = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h3 className="font-bold text-deepBlue text-lg truncate">{user.name}</h3>
+                      <h3 className="font-bold text-gray-900 text-lg truncate">{user.name}</h3>
                       <p className="text-sm text-secondary">Age: {user.age}</p>
                     </div>
                     <Badge variant={user.status === 'active' ? 'active' : 'inactive'} size="sm">
@@ -104,7 +104,7 @@ const ElderlyUsersList = () => {
               <div className="mt-4 pt-4 border-t border-border space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-secondary">Last Activity</span>
-                  <span className="text-sm font-medium text-deepBlue">{user.lastActivity}</span>
+                  <span className="text-sm font-medium text-gray-900">{user.lastActivity}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-secondary">Cognitive Score</span>
@@ -114,7 +114,7 @@ const ElderlyUsersList = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-secondary">Total Sessions</span>
-                  <span className="text-sm font-medium text-deepBlue">{user.totalSessions}</span>
+                  <span className="text-sm font-medium text-gray-900">{user.totalSessions}</span>
                 </div>
               </div>
 
@@ -138,7 +138,7 @@ const ElderlyUsersList = () => {
         {filteredUsers.length === 0 && (
           <Card className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-bold text-deepBlue mb-2">No users found</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No users found</h3>
             <p className="text-secondary">Try adjusting your search or filter criteria</p>
           </Card>
         )}

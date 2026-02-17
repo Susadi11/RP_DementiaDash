@@ -21,7 +21,7 @@ const FinalReport = () => {
     return (
       <Layout>
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-deepBlue">User not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900">User not found</h2>
           <Button className="mt-4" onClick={() => navigate('/users')}>
             Back to Users
           </Button>
@@ -90,7 +90,7 @@ const FinalReport = () => {
                 <p className="text-sm text-secondary">Overall Rating</p>
                 <p className={`text-2xl font-bold ${rating.color}`}>{rating.label}</p>
               </div>
-              <p className="text-4xl font-bold text-deepBlue">{weeklyReport.overallScore}/100</p>
+              <p className="text-4xl font-bold text-gray-900">{weeklyReport.overallScore}/100</p>
             </div>
           </div>
         </Card>
@@ -132,22 +132,22 @@ const FinalReport = () => {
                 <span className="text-white text-xl">💬</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-deepBlue">Chat & Conversation</h3>
+                <h3 className="text-lg font-bold text-gray-900">Chat & Conversation</h3>
                 <p className="text-sm text-secondary">Social Engagement Analysis</p>
               </div>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-secondary">Total Conversations</span>
-                <span className="font-bold text-deepBlue">{weeklyReport.chat.totalConversations}</span>
+                <span className="font-bold text-gray-900">{weeklyReport.chat.totalConversations}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary">Avg. Length</span>
-                <span className="font-bold text-deepBlue">{weeklyReport.chat.avgLength} min</span>
+                <span className="font-bold text-gray-900">{weeklyReport.chat.avgLength} min</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary">Primary Topics</span>
-                <span className="font-bold text-deepBlue">{weeklyReport.chat.commonTopics.slice(0,2).join(', ')}</span>
+                <span className="font-bold text-gray-900">{weeklyReport.chat.commonTopics.slice(0,2).join(', ')}</span>
               </div>
             </div>
           </Card>
@@ -159,14 +159,14 @@ const FinalReport = () => {
                 <span className="text-white text-xl">🧠</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-deepBlue">Cognitive Assessment</h3>
+                <h3 className="text-lg font-bold text-gray-900">Cognitive Assessment</h3>
                 <p className="text-sm text-secondary">MMSE Evaluation</p>
               </div>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-secondary">Latest Score</span>
-                <span className="font-bold text-deepBlue">{weeklyReport.cognitive.latestScore}/30</span>
+                <span className="font-bold text-gray-900">{weeklyReport.cognitive.latestScore}/30</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary">Week Change</span>
@@ -176,7 +176,7 @@ const FinalReport = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary">Test Frequency</span>
-                <span className="font-bold text-deepBlue">{weeklyReport.cognitive.testFrequency}</span>
+                <span className="font-bold text-gray-900">{weeklyReport.cognitive.testFrequency}</span>
               </div>
             </div>
           </Card>
@@ -188,18 +188,18 @@ const FinalReport = () => {
                 <span className="text-white text-xl">🎮</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-deepBlue">Cognitive Games</h3>
+                <h3 className="text-lg font-bold text-gray-900">Cognitive Games</h3>
                 <p className="text-sm text-secondary">Game Activity & Performance</p>
               </div>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-secondary">Games Played</span>
-                <span className="font-bold text-deepBlue">{weeklyReport.games.totalGamesPlayed}</span>
+                <span className="font-bold text-gray-900">{weeklyReport.games.totalGamesPlayed}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary">Total Time</span>
-                <span className="font-bold text-deepBlue">{weeklyReport.games.totalTime} hrs</span>
+                <span className="font-bold text-gray-900">{weeklyReport.games.totalTime} hrs</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary">Avg. Performance</span>
@@ -215,7 +215,7 @@ const FinalReport = () => {
                 <span className="text-white text-xl">💊</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-deepBlue">Medication & Reminders</h3>
+                <h3 className="text-lg font-bold text-gray-900">Medication & Reminders</h3>
                 <p className="text-sm text-secondary">Adherence Tracking</p>
               </div>
             </div>

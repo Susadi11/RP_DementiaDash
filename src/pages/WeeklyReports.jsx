@@ -21,7 +21,7 @@ const WeeklyReports = () => {
     return (
       <Layout>
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-deepBlue">User not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900">User not found</h2>
           <Button className="mt-4" onClick={() => navigate('/users')}>
             Back to Users
           </Button>
@@ -95,7 +95,7 @@ const WeeklyReports = () => {
 
         {/* Week Comparison */}
         <Card>
-          <h3 className="text-xl font-bold text-deepBlue mb-4">Week-over-Week Comparison</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Week-over-Week Comparison</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-secondaryBg rounded-lg">
               <p className="text-sm text-secondary mb-1">Chat Activity</p>

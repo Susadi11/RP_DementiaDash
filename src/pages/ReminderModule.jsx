@@ -39,7 +39,7 @@ const ReminderModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-deepBlue mb-1">{user.name}</h2>
-              <p className="text-secondary">Age: {user.age} years | Status: {user.status}</p>
+              <p className="text-gray-700">Age: {user.age} years | Status: {user.status}</p>
             </div>
             <div className="text-right">
               <div className="flex items-center space-x-2 text-secondary mb-1">
@@ -75,13 +75,13 @@ const ReminderModule = () => {
 
         {/* Medication Schedule */}
         <Card>
-          <h2 className="text-2xl font-bold text-deepBlue mb-4">Medication Schedule</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Medication Schedule</h2>
           <div className="space-y-4">
             {reminderData.medications.map((med, index) => (
               <div key={index} className="p-4 bg-secondaryBg rounded-lg">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h3 className="text-lg font-bold text-deepBlue">{med.name}</h3>
+                    <h3 className="text-lg font-bold text-gray-900">{med.name}</h3>
                     <p className="text-sm text-secondary">{med.dosage} - {med.frequency}</p>
                   </div>
                   <div className={`px-4 py-2 rounded-full text-sm font-medium ${
@@ -127,14 +127,14 @@ const ReminderModule = () => {
         {/* Missed Reminders */}
         {reminderData.missedReminders.length > 0 && (
           <Card>
-            <h2 className="text-2xl font-bold text-deepBlue mb-4">Missed Reminders This Week</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Missed Reminders This Week</h2>
             <div className="space-y-3">
               {reminderData.missedReminders.map((reminder, index) => (
                 <div key={index} className="p-4 bg-red-50 rounded-lg border border-red-200 flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <XCircle className="w-5 h-5 text-red-600" />
                     <div>
-                      <p className="font-semibold text-deepBlue">{reminder.title}</p>
+                      <p className="font-semibold text-gray-900">{reminder.title}</p>
                       <p className="text-sm text-secondary">{reminder.date} at {reminder.time}</p>
                     </div>
                   </div>
@@ -149,11 +149,11 @@ const ReminderModule = () => {
 
         {/* Activity Completion */}
         <Card>
-          <h2 className="text-2xl font-bold text-deepBlue mb-4">Activity Completion</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Activity Completion</h2>
           <div className="space-y-4">
             {reminderData.activities.map((activity, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-secondaryBg rounded-lg">
-                <span className="text-deepBlue font-medium">{activity.name}</span>
+                <span className="text-gray-900 font-medium">{activity.name}</span>
                 <div className="flex items-center space-x-3">
                   <div className="w-48 bg-gray-200 rounded-full h-3">
                     <div
@@ -161,7 +161,7 @@ const ReminderModule = () => {
                       style={{ width: `${activity.completion}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-semibold text-deepBlue w-12 text-right">
+                  <span className="text-sm font-semibold text-gray-900 w-12 text-right">
                     {activity.completion}%
                   </span>
                 </div>
@@ -172,7 +172,7 @@ const ReminderModule = () => {
 
         {/* Weekly Performance */}
         <Card>
-          <h2 className="text-2xl font-bold text-deepBlue mb-4">Daily Performance</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Daily Performance</h2>
           <div className="grid grid-cols-7 gap-3">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
               const rate = Math.floor(Math.random() * 40) + 60; // Random 60-100
@@ -188,7 +188,7 @@ const ReminderModule = () => {
 
         {/* Insights */}
         <Card>
-          <h3 className="text-xl font-bold text-deepBlue mb-4">Weekly Insights</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Weekly Insights</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
               <h4 className="text-sm font-semibold text-green-800 mb-2">Achievements</h4>

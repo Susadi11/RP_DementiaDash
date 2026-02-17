@@ -87,7 +87,7 @@ const MMSEModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-deepBlue mb-1">{user.name}</h2>
-              <p className="text-secondary">Age: {user.age} years | Status: {user.status}</p>
+              <p className="text-gray-700">Age: {user.age} years | Status: {user.status}</p>
             </div>
             <div className="text-right">
               <div className="flex items-center space-x-2 text-secondary mb-1">
@@ -116,22 +116,22 @@ const MMSEModule = () => {
           </Card>
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Tests Completed</p>
-            <p className="text-3xl font-bold text-deepBlue">{mmseTests.length}</p>
+            <p className="text-3xl font-bold text-gray-900">{mmseTests.length}</p>
           </Card>
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Test Frequency</p>
-            <p className="text-3xl font-bold text-deepBlue">{cognitiveData.testFrequency}</p>
+            <p className="text-3xl font-bold text-gray-900">{cognitiveData.testFrequency}</p>
           </Card>
         </div>
 
         {/* MMSE Test Sessions */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-deepBlue">Test Sessions This Week</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Test Sessions This Week</h2>
           {mmseTests.map((test) => (
             <Card key={test.id} className="border-l-4 border-primary">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-deepBlue">Test #{test.id}</h3>
+                  <h3 className="text-xl font-bold text-gray-900">Test #{test.id}</h3>
                   <p className="text-sm text-secondary">Date: {test.date}</p>
                 </div>
                 <div className="text-right">
@@ -146,12 +146,12 @@ const MMSEModule = () => {
               </div>
 
               {/* Category Breakdown */}
-              <h4 className="text-lg font-semibold text-deepBlue mb-4">Category Breakdown</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {test.categories.map((category) => (
                   <div key={category.name} className="p-4 bg-secondaryBg rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-deepBlue">{category.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{category.name}</p>
                       <div className="flex items-center space-x-1">
                         {getChangeIcon(category.change)}
                         <span className={`text-xs font-semibold ${getChangeColor(category.change)}`}>
@@ -160,7 +160,7 @@ const MMSEModule = () => {
                       </div>
                     </div>
                     <div className="flex items-baseline space-x-2">
-                      <p className="text-2xl font-bold text-deepBlue">{category.score}</p>
+                      <p className="text-2xl font-bold text-gray-900">{category.score}</p>
                       <p className="text-sm text-secondary">/ {category.max}</p>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -178,7 +178,7 @@ const MMSEModule = () => {
 
         {/* Performance Analysis */}
         <Card>
-          <h3 className="text-xl font-bold text-deepBlue mb-4">Performance Analysis</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Performance Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
               <h4 className="text-sm font-semibold text-green-800 mb-2">Strengths</h4>

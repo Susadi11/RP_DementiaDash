@@ -17,28 +17,28 @@ const ChatReport = ({ data }) => {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-secondary mb-1">Total Conversations</p>
-            <p className="text-3xl font-bold text-deepBlue">{data.totalConversations}</p>
+            <p className="text-3xl font-bold text-gray-900">{data.totalConversations}</p>
           </div>
           <div>
             <p className="text-sm text-secondary mb-1">Avg. Conversation Length</p>
-            <p className="text-3xl font-bold text-deepBlue">{data.avgLength} min</p>
+            <p className="text-3xl font-bold text-gray-900">{data.avgLength} min</p>
           </div>
           <div>
             <p className="text-sm text-secondary mb-1">Most Active Time</p>
-            <p className="text-lg font-semibold text-deepBlue">{data.mostActiveTime}</p>
+            <p className="text-lg font-semibold text-gray-900">{data.mostActiveTime}</p>
           </div>
         </div>
 
         {/* Mood Chart */}
         <div>
-          <p className="text-sm font-semibold text-deepBlue mb-3">Mood Distribution</p>
+          <p className="text-sm font-semibold text-gray-900 mb-3">Mood Distribution</p>
           <DonutChart data={moodData} height={200} />
         </div>
       </div>
 
       {/* Common Topics */}
       <div className="mt-6">
-        <p className="text-sm font-semibold text-deepBlue mb-3">Common Topics</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Common Topics</p>
         <div className="flex flex-wrap gap-2">
           {data.commonTopics.map((topic, index) => (
             <span
@@ -53,12 +53,12 @@ const ChatReport = ({ data }) => {
 
       {/* Sample Conversations */}
       <div className="mt-6">
-        <p className="text-sm font-semibold text-deepBlue mb-3">Recent Conversations</p>
+        <p className="text-sm font-semibold text-gray-900 mb-3">Recent Conversations</p>
         <div className="space-y-3">
           {data.sampleConversations.map((conv, index) => (
             <div key={index} className="p-3 bg-secondaryBg rounded-lg">
               <p className="text-sm text-secondary mb-1">{conv.date}</p>
-              <p className="text-sm text-deepBlue">{conv.snippet}</p>
+              <p className="text-sm text-gray-900">{conv.snippet}</p>
             </div>
           ))}
         </div>

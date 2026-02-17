@@ -75,7 +75,7 @@ const Settings = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">Email Alerts</h3>
+                      <h3 className="font-semibold text-gray-900">Email Alerts</h3>
                       <p className="text-sm text-secondary">Receive email notifications for important events</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -91,7 +91,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">Critical Alerts</h3>
+                      <h3 className="font-semibold text-gray-900">Critical Alerts</h3>
                       <p className="text-sm text-secondary">Immediate notifications for critical health events</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -107,7 +107,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">Weekly Reports</h3>
+                      <h3 className="font-semibold text-gray-900">Weekly Reports</h3>
                       <p className="text-sm text-secondary">Receive weekly summary reports via email</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -123,7 +123,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">Missed Medication</h3>
+                      <h3 className="font-semibold text-gray-900">Missed Medication</h3>
                       <p className="text-sm text-secondary">Alerts when users miss medication</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -139,7 +139,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">Low Engagement</h3>
+                      <h3 className="font-semibold text-gray-900">Low Engagement</h3>
                       <p className="text-sm text-secondary">Notify when user engagement drops</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -169,7 +169,7 @@ const Settings = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">Auto-Generate Reports</h3>
+                      <h3 className="font-semibold text-gray-900">Auto-Generate Reports</h3>
                       <p className="text-sm text-secondary">Automatically generate weekly reports</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -184,7 +184,7 @@ const Settings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-deepBlue mb-2">Report Frequency</label>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Report Frequency</label>
                     <select
                       value={reportSettings.frequency}
                       onChange={(e) => setReportSettings({...reportSettings, frequency: e.target.value})}
@@ -198,7 +198,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">Include Charts</h3>
+                      <h3 className="font-semibold text-gray-900">Include Charts</h3>
                       <p className="text-sm text-secondary">Add visualizations to reports</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -214,7 +214,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between p-4 bg-secondaryBg rounded-xl">
                     <div>
-                      <h3 className="font-semibold text-deepBlue">PDF Format</h3>
+                      <h3 className="font-semibold text-gray-900">PDF Format</h3>
                       <p className="text-sm text-secondary">Export reports in PDF format</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -243,10 +243,10 @@ const Settings = () => {
                 <h2 className="text-2xl font-bold text-deepBlue mb-6">Security Settings</h2>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="font-semibold text-deepBlue mb-4">Change Password</h3>
+                    <h3 className="font-semibold text-gray-900 mb-4">Change Password</h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-deepBlue mb-2">Current Password</label>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">Current Password</label>
                         <input
                           type="password"
                           placeholder="Enter current password"
@@ -254,7 +254,7 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-deepBlue mb-2">New Password</label>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">New Password</label>
                         <input
                           type="password"
                           placeholder="Enter new password"
@@ -262,7 +262,7 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-deepBlue mb-2">Confirm New Password</label>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">Confirm New Password</label>
                         <input
                           type="password"
                           placeholder="Confirm new password"
@@ -273,7 +273,7 @@ const Settings = () => {
                   </div>
 
                   <div className="pt-4 border-t border-border">
-                    <h3 className="font-semibold text-deepBlue mb-2">Two-Factor Authentication</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">Two-Factor Authentication</h3>
                     <p className="text-sm text-secondary mb-4">Add an extra layer of security to your account</p>
                     <Button variant="outline">Enable 2FA</Button>
                   </div>

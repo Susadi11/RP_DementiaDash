@@ -107,7 +107,7 @@ const ChatModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-deepBlue mb-1">{user.name}</h2>
-              <p className="text-secondary">Age: {user.age} years | Status: {user.status}</p>
+              <p className="text-gray-700">Age: {user.age} years | Status: {user.status}</p>
             </div>
             <div className="text-right">
               <div className="flex items-center space-x-2 text-secondary mb-1">
@@ -123,11 +123,11 @@ const ChatModule = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Total Sessions</p>
-            <p className="text-3xl font-bold text-deepBlue">{chatData.totalConversations}</p>
+            <p className="text-3xl font-bold text-gray-900">{chatData.totalConversations}</p>
           </Card>
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Avg Duration</p>
-            <p className="text-3xl font-bold text-deepBlue">{chatData.avgLength} min</p>
+            <p className="text-3xl font-bold text-gray-900">{chatData.avgLength} min</p>
           </Card>
           <Card className="text-center">
             <p className="text-sm text-secondary mb-1">Avg Engagement</p>
@@ -146,7 +146,7 @@ const ChatModule = () => {
             <Card key={session.id} className="border-l-4 border-primary">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-deepBlue">Session #{session.id}</h3>
+                  <h3 className="text-xl font-bold text-gray-900">Session #{session.id}</h3>
                   <p className="text-sm text-secondary">Date: {session.date} | Duration: {session.duration} minutes</p>
                 </div>
               </div>
@@ -157,7 +157,7 @@ const ChatModule = () => {
                   <div key={paramName} className="p-4 bg-secondaryBg rounded-lg">
                     <p className="text-xs text-secondary mb-1">{paramName}</p>
                     <div className="flex items-center justify-between">
-                      <p className="text-2xl font-bold text-deepBlue">
+                      <p className="text-2xl font-bold text-gray-900">
                         {data.score} {data.unit === '%' ? '%' : ''}
                       </p>
                       <div className="flex items-center space-x-1">
@@ -177,7 +177,7 @@ const ChatModule = () => {
 
         {/* Top Topics */}
         <Card>
-          <h3 className="text-xl font-bold text-deepBlue mb-4">Common Topics This Week</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Common Topics This Week</h3>
           <div className="flex flex-wrap gap-2">
             {chatData.commonTopics.map((topic, idx) => (
               <span key={idx} className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium">

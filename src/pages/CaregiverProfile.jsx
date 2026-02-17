@@ -234,13 +234,13 @@ const CaregiverProfile = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-secondary mb-2">Your Caregiver ID</p>
-              <p className="text-3xl font-bold text-deepBlue tracking-wider">
+              <p className="text-3xl font-bold text-gray-900 tracking-wider">
                 {profile?.caregiver_id}
               </p>
             </div>
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-2 px-4 py-2 bg-secondaryBg hover:bg-gray-200 text-deepBlue rounded-xl transition-all font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-secondaryBg hover:bg-gray-200 text-gray-900 rounded-xl transition-all font-medium"
             >
               {copiedId ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
               {copiedId ? 'Copied!' : 'Copy'}
@@ -283,55 +283,55 @@ const CaregiverProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">Full Name</p>
-                  <p className="text-lg font-semibold text-deepBlue">
+                  <p className="text-lg font-semibold text-gray-900">
                     {profile?.first_name} {profile?.last_name}
                   </p>
                 </div>
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">Email</p>
-                  <p className="text-lg font-semibold text-deepBlue flex items-center gap-2">
+                  <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <Mail className="w-4 h-4 text-primary" />
                     {profile?.email}
                   </p>
                 </div>
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">Mobile Number</p>
-                  <p className="text-lg font-semibold text-deepBlue flex items-center gap-2">
+                  <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <Phone className="w-4 h-4 text-primary" />
                     {profile?.mobile_number}
                   </p>
                 </div>
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">District</p>
-                  <p className="text-lg font-semibold text-deepBlue flex items-center gap-2">
+                  <p className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-primary" />
                     {profile?.district}
                   </p>
                 </div>
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">NIC Number</p>
-                  <p className="text-lg font-semibold text-deepBlue">{profile?.nic_number}</p>
+                  <p className="text-lg font-semibold text-gray-900">{profile?.nic_number}</p>
                 </div>
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">Gender</p>
-                  <p className="text-lg font-semibold text-deepBlue">{profile?.gender}</p>
+                  <p className="text-lg font-semibold text-gray-900">{profile?.gender}</p>
                 </div>
               </div>
 
-              <h3 className="text-lg font-bold text-deepBlue mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />
                 Emergency Contact
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">Contact Name</p>
-                  <p className="text-lg font-semibold text-deepBlue">
+                  <p className="text-lg font-semibold text-gray-900">
                     {profile?.emergency_contact_name}
                   </p>
                 </div>
                 <div className="bg-secondaryBg p-4 rounded-xl border border-border">
                   <p className="text-sm font-medium text-secondary mb-1">Contact Number</p>
-                  <p className="text-lg font-semibold text-deepBlue">
+                  <p className="text-lg font-semibold text-gray-900">
                     {profile?.emergency_contact_number}
                   </p>
                 </div>
@@ -378,7 +378,7 @@ const CaregiverProfile = () => {
 
               {/* Profile Photo Upload */}
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-deepBlue mb-3">
+                <label className="block text-sm font-semibold text-gray-900 mb-3">
                   Profile Photo
                 </label>
                 <div className="flex items-center gap-4">
@@ -412,7 +412,7 @@ const CaregiverProfile = () => {
                     />
                     <label
                       htmlFor="profile_photo_edit"
-                      className="inline-block px-4 py-2 bg-secondaryBg hover:bg-gray-200 border-2 border-border rounded-xl cursor-pointer transition-all font-medium text-deepBlue"
+                      className="inline-block px-4 py-2 bg-secondaryBg hover:bg-gray-200 border-2 border-border rounded-xl cursor-pointer transition-all font-medium text-gray-900"
                     >
                       <Camera className="w-4 h-4 inline mr-2" />
                       Change Photo
@@ -426,7 +426,7 @@ const CaregiverProfile = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     First Name
                   </label>
                   <input
@@ -438,7 +438,7 @@ const CaregiverProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Last Name
                   </label>
                   <input
@@ -450,7 +450,7 @@ const CaregiverProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Mobile Number
                   </label>
                   <input
@@ -462,7 +462,7 @@ const CaregiverProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     District
                   </label>
                   <input
@@ -474,7 +474,7 @@ const CaregiverProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Emergency Contact Name
                   </label>
                   <input
@@ -486,7 +486,7 @@ const CaregiverProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Emergency Contact Number
                   </label>
                   <input
@@ -545,7 +545,7 @@ const CaregiverProfile = () => {
 
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Current Password
                   </label>
                   <input
@@ -558,7 +558,7 @@ const CaregiverProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     New Password
                   </label>
                   <input
@@ -572,7 +572,7 @@ const CaregiverProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-deepBlue mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Confirm New Password
                   </label>
                   <input
