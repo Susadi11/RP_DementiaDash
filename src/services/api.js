@@ -259,3 +259,52 @@ export const isAuthenticated = () => {
 export const getCurrentCaregiverId = () => {
   return localStorage.getItem('caregiver_id');
 };
+
+/**
+ * Get patient chat sessions for a date range
+ */
+export const getPatientSessions = async (userId, startDate, endDate) => {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  
+  const response = await fetch(`${API_BASE_URL}/api/detection/sessions/${userId}?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get weekly risk for a patient
+ */
+export const getWeeklyRisk = async (userId, weekStart) => {
+  const response = await fetch(`${API_BASE_URL}/api/detection/weekly-risk?user_id=${userId}&week_start=${weekStart}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get a specific session by ID
+ */
+export const getSessionById = async (sessionId) => {
+  const response = await fetch(`${API_BASE_URL}/api/detection/session/${sessionId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};

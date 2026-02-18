@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, MessageSquare, Brain, Gamepad2, Bell, Calendar, TrendingUp } from 'lucide-react';
+import { Download, MessageSquare, Brain, Gamepad2, Bell, Calendar, Heart, Pill, AlertTriangle, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Card from '../components/common/Card';
@@ -148,15 +148,88 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Overall Week Score */}
-        <Card className="bg-primary text-white text-center">
-          <p className="text-white/80 mb-2">Overall Weekly Score</p>
-          <p className="text-6xl font-bold mb-2">{weeklyReport.overallScore}</p>
-          <p className="text-white/80">out of 100</p>
-          <div className="flex items-center justify-center space-x-2 mt-3">
-            <TrendingUp className="w-5 h-5 text-white" />
-            <span className="text-lg font-semibold">Improved from last week</span>
+        {/* Medical Health Record */}
+        <Card className="border border-gray-200">
+          <div className="flex items-center space-x-2 mb-4">
+            <FileText className="w-5 h-5 text-primary" />
+            <h2 className="text-xl font-bold text-deepBlue">Medical Health Record</h2>
           </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Medical Conditions */}
+            <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+              <div className="flex items-center space-x-2 mb-3">
+                <Heart className="w-5 h-5 text-red-500" />
+                <h3 className="font-semibold text-red-800">Medical Conditions</h3>
+              </div>
+              <div className="space-y-2">
+                {user.condition && user.condition !== 'Not specified' ? (
+                  user.condition.split(',').map((condition, idx) => (
+                    <span 
+                      key={idx} 
+                      className="inline-block px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full mr-1 mb-1"
+                    >
+                      {condition.trim()}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No conditions specified</p>
+                )}
+              </div>
+            </div>
+
+            {/* Allergies */}
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+              <div className="flex items-center space-x-2 mb-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                <h3 className="font-semibold text-yellow-800">Allergies</h3>
+              </div>
+              <div className="space-y-2">
+                {user.allergies && user.allergies.length > 0 ? (
+                  user.allergies.map((allergy, idx) => (
+                    <span 
+                      key={idx} 
+                      className="inline-block px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded-full mr-1 mb-1"
+                    >
+                      {allergy}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No known allergies</p>
+                )}
+              </div>
+            </div>
+
+            {/* Current Medicines */}
+            <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+              <div className="flex items-center space-x-2 mb-3">
+                <Pill className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold text-green-800">Current Medicines</h3>
+              </div>
+              <div className="space-y-2">
+                {user.medicines && user.medicines.length > 0 ? (
+                  user.medicines.map((medicine, idx) => (
+                    <span 
+                      key={idx} 
+                      className="inline-block px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full mr-1 mb-1"
+                    >
+                      {medicine}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No medicines listed</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Medical History */}
+          {user.medicalHistory && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <h3 className="font-semibold text-gray-800 mb-2">Medical History</h3>
+              <p className="text-sm text-gray-600">{user.medicalHistory}</p>
+            </div>
+          )}
         </Card>
 
         {/* Module Summary Grid */}

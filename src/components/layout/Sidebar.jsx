@@ -17,7 +17,7 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname.startsWith(path);
 
   return (
-    <aside className="w-64 bg-white border-r border-border h-screen sticky top-[73px] overflow-y-auto">
+    <aside className="w-64 bg-white border-r border-border h-full overflow-y-auto">
       <nav className="p-4 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
