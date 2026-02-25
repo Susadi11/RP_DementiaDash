@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import ChatModule from './pages/ChatModule';
 import MMSEModule from './pages/MMSEModule';
 import GameModule from './pages/GameModule';
+import GameAnalytics from './pages/GameAnalytics';
 import ReminderModule from './pages/ReminderModule';
 import Settings from './pages/Settings';
 
@@ -17,6 +18,7 @@ function App() {
         <Route path="/chat" element={<ChatModule />} />
         <Route path="/mmse" element={<MMSEModule />} />
         <Route path="/game" element={<GameModule />} />
+        <Route path="/game/analytics" element={<GameAnalytics />} />
         <Route path="/reminder" element={<ReminderModule />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
