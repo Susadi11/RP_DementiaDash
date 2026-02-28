@@ -308,3 +308,250 @@ export const getSessionById = async (sessionId) => {
 
   return handleResponse(response);
 };
+
+// ============================================
+// CAREGIVER DASHBOARD API ENDPOINTS
+// ============================================
+
+/**
+ * Get patient dashboard overview
+ * Includes compliance rate, behavior analysis, cognitive risk, and recommendations
+ */
+export const getPatientDashboard = async (patientId) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/dashboard/${patientId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get ALL reminders for a patient from the reminders service
+ * This is the real endpoint used by the mobile app — returns every reminder
+ * regardless of status (active, completed, missed, snoozed)
+ * @param {string} patientId - Patient user ID
+ */
+export const getUserRemindersAll = async (patientId) => {
+  const response = await fetch(`${API_BASE_URL}/api/reminders/user/${patientId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get all reminders for a patient with optional filtering
+ * @param {string} patientId - Patient user ID
+ * @param {Object} filters - Optional filters { status, category, days }
+ */
+export const getPatientReminders = async (patientId, filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.status) params.append('status', filters.status);
+  if (filters.category) params.append('category', filters.category);
+  if (filters.days) params.append('days', filters.days);
+
+  const queryString = params.toString();
+  const url = `${API_BASE_URL}/api/caregiver/reminders/${patientId}${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get missed reminders for a patient (UI-ready format)
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Number of days to check (default: 7)
+ */
+export const getMissedReminders = async (patientId, days = 7) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/reminders/${patientId}/missed?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get activity completion rates for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Analysis period (default: 7)
+ */
+export const getActivityCompletion = async (patientId, days = 7) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/activity-completion/${patientId}?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get medication schedule for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Number of days (default: 7)
+ */
+export const getMedicationSchedule = async (patientId, days = 7) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/medication-schedule/${patientId}?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get ML-powered behavior analysis for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Analysis period (default: 30)
+ */
+export const getBehaviorAnalysis = async (patientId, days = 30) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/behavior-analysis/${patientId}?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get comprehensive weekly report for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {string} endDate - End date (YYYY-MM-DD), defaults to today
+ */
+export const getWeeklyReport = async (patientId, endDate = null) => {
+  const url = endDate
+    ? `${API_BASE_URL}/api/caregiver/weekly-report/${patientId}?end_date=${endDate}`
+    : `${API_BASE_URL}/api/caregiver/weekly-report/${patientId}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get caregiver alerts for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {Object} filters - Optional filters { priority, resolved, days }
+ */
+export const getCaregiverAlerts = async (patientId, filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.priority) params.append('priority', filters.priority);
+  if (filters.resolved !== undefined) params.append('resolved', filters.resolved);
+  if (filters.days) params.append('days', filters.days);
+
+  const queryString = params.toString();
+  const url = `${API_BASE_URL}/api/caregiver/alerts/${patientId}${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get snoozed reminders for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Number of days to look back (default: 7)
+ */
+export const getSnoozedReminders = async (patientId, days = 7) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/reminders/${patientId}/snoozed?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get all reminders grouped by status (active / completed / missed / snoozed)
+ * Ideal for a tabbed/filtered reminder list in the dashboard
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Number of days to look back (default: 7)
+ */
+export const getAllRemindersGrouped = async (patientId, days = 7) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/reminders/${patientId}/grouped?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get comprehensive adherence + final risk score using ML models
+ * Returns adherence_score, cognitive_risk_score, wellness_score, risk_level,
+ * behavior_trend, category_breakdown, urgency, and recommendations
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Analysis period (default: 30)
+ */
+export const getAdherenceRiskScore = async (patientId, days = 30) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/adherence-risk/${patientId}?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Resolve a caregiver alert
+ * @param {string} alertId - Alert ID
+ */
+export const resolveAlert = async (alertId) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/alerts/${alertId}/resolve`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
