@@ -267,7 +267,7 @@ export const getPatientSessions = async (userId, startDate, endDate) => {
   const params = new URLSearchParams();
   if (startDate) params.append('start_date', startDate);
   if (endDate) params.append('end_date', endDate);
-  
+
   const response = await fetch(`${API_BASE_URL}/api/detection/sessions/${userId}?${params.toString()}`, {
     method: 'GET',
     headers: {
@@ -547,6 +547,42 @@ export const getAdherenceRiskScore = async (patientId, days = 30) => {
 export const resolveAlert = async (alertId) => {
   const response = await fetch(`${API_BASE_URL}/api/caregiver/alerts/${alertId}/resolve`, {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+// ============================================
+// MMSE ASSESSMENT API ENDPOINTS
+// ============================================
+
+/**
+ * Get all patients with their assessments for a specific caregiver
+ * @param {string} caregiverId - Caregiver ID
+ */
+export const getCaregiverPatientsMMSE = async (caregiverId) => {
+  const response = await fetch(`${API_BASE_URL}/api/mmse/caregiver/${caregiverId}/patients`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get all assessments for a specific patient
+ * @param {string} userId - Patient User ID
+ */
+export const getPatientAssessmentsMMSE = async (userId) => {
+  const response = await fetch(`${API_BASE_URL}/api/mmse/user/${userId}`, {
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
       ...getAuthHeader()
