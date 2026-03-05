@@ -84,7 +84,7 @@ const MMSEModule = () => {
         if (lastAssessment) {
           calculatedScore = getValue(lastAssessment.total_score, lastAssessment.score, lastAssessment.totalScore, lastAssessment.result);
           if (calculatedScore === null && lastAssessment.questions) {
-            calculatedScore = lastAssessment.questions.reduce((acc, q) => acc + (q.score ?? q.result ?? 0), 0);
+            calculatedScore = lastAssessment.questions.reduce((acc, q) => acc + (q.question_score ?? q.score ?? q.result ?? 0), 0);
           }
         }
 
@@ -172,7 +172,7 @@ const MMSEModule = () => {
 
         let calcScore = a.total_score ?? a.score ?? a.totalScore ?? a.result;
         if ((calcScore === null || calcScore === undefined) && questions.length > 0) {
-          calcScore = questions.reduce((acc, q) => acc + (q.score ?? q.result ?? 0), 0);
+          calcScore = questions.reduce((acc, q) => acc + (q.question_score ?? q.score ?? q.result ?? 0), 0);
         }
 
         return {
@@ -338,7 +338,7 @@ const MMSEModule = () => {
       doc.setTextColor(60, 60, 60);
       doc.text(q.prediction || '-', 100, y + 1);
 
-      const qScore = q.score ?? 0;
+      const qScore = q.question_score ?? q.score ?? q.result ?? 0;
       const qMax = q.max || 1;
       if (qScore === qMax) {
         doc.setTextColor(22, 101, 52);
@@ -554,636 +554,655 @@ const MMSEModule = () => {
 
     return (
       <Layout>
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="space-y-6"
-        >
-          {/* Back Header */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setSelectedPatient(null)}
-              className="flex items-center space-x-2 text-secondary hover:text-primary transition-colors group"
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">Back to All Patients</span>
-            </button>
-          </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key="patient-details"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={containerVariants}
+            className="space-y-6"
+          >
+            {/* Back Header */}
+            <div className="flex items-center justify-between">
+              <motion.button
+                whileHover={{ x: -5 }}
+                onClick={() => setSelectedPatient(null)}
+                className="flex items-center space-x-2 text-secondary hover:text-primary transition-colors group px-4 py-2 rounded-xl hover:bg-primary/5"
+              >
+                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                <span className="font-bold uppercase tracking-widest text-[10px]">Back to Overview</span>
+              </motion.button>
+            </div>
 
-          {/* Patient Overview Header - Fixed Visibility */}
-          <motion.div variants={itemVariants}>
-            <motion.div
-              className="relative overflow-hidden bg-gradient-to-br from-[#1e3a8a] via-primary to-[#4338ca] rounded-[2rem] shadow-xl p-0"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {/* Abstract background shapes for depth */}
-              <div className="absolute -right-20 -top-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
-              <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-accent/20 rounded-full blur-2xl" />
+            {/* Patient Overview Header - Fixed Visibility */}
+            <motion.div variants={itemVariants}>
+              <motion.div
+                className="relative overflow-hidden bg-gradient-to-br from-[#1e3a8a] via-primary to-[#4338ca] rounded-[2rem] shadow-xl p-0"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {/* Abstract background shapes for depth */}
+                <div className="absolute -right-20 -top-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-accent/20 rounded-full blur-2xl" />
 
-              <div className="relative p-8 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                <div className="flex items-center space-x-6">
-                  <div className="relative">
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-2xl border border-white/30">
-                      <User className="w-10 h-10 text-white" />
+                <div className="relative p-8 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                  <div className="flex items-center space-x-6">
+                    <div className="relative">
+                      <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-2xl border border-white/30">
+                        <User className="w-10 h-10 text-white" />
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 border-4 border-[#1e3a8a] rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                      </div>
                     </div>
-                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 border-4 border-[#1e3a8a] rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                    <div className="text-white">
+                      <h1 className="text-3xl font-black tracking-tight">{selectedPatient.displayName}</h1>
+                      <div className="flex items-center mt-2 space-x-4">
+                        <span className="text-xs font-bold bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white/90 uppercase tracking-wider">
+                          Patient ID: {selectedPatient.user_id}
+                        </span>
+                        <span className="flex items-center text-[10px] font-bold uppercase tracking-widest text-white/70">
+                          <Activity className="w-3.5 h-3.5 mr-1 text-emerald-400" />
+                          Active Clinical File
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-white">
-                    <h1 className="text-3xl font-black tracking-tight">{selectedPatient.displayName}</h1>
-                    <div className="flex items-center mt-2 space-x-4">
-                      <span className="text-xs font-bold bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white/90 uppercase tracking-wider">
-                        Patient ID: {selectedPatient.user_id}
-                      </span>
-                      <span className="flex items-center text-[10px] font-bold uppercase tracking-widest text-white/70">
-                        <Activity className="w-3.5 h-3.5 mr-1 text-emerald-400" />
-                        Active Clinical File
-                      </span>
+                  <div className="flex gap-4">
+                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 min-w-[150px] shadow-lg">
+                      <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Latest Score</p>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-white text-4xl font-black">{selectedPatient.displayScore ?? '0'}</span>
+                        <span className="text-white/40 text-xs font-bold">/30</span>
+                      </div>
+                      <div className="w-full bg-black/20 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(selectedPatient.displayScore / 30) * 100}%` }}
+                          transition={{ duration: 1.5, ease: "easeOut" }}
+                          className="h-full bg-gradient-to-r from-emerald-400 to-green-300 shadow-[0_0_15px_rgba(52,211,153,0.5)]"
+                        />
+                      </div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 min-w-[150px] shadow-lg flex flex-col items-center justify-center">
+                      <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Total Tests</p>
+                      <span className="text-white text-4xl font-black">{patientAssessments.length}</span>
+                      <ClipboardList className="w-4 h-4 text-white/30 mt-2" />
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 min-w-[150px] shadow-lg">
-                    <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Latest Score</p>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-white text-4xl font-black">{selectedPatient.displayScore ?? '0'}</span>
-                      <span className="text-white/40 text-xs font-bold">/30</span>
-                    </div>
-                    <div className="w-full bg-black/20 h-1.5 rounded-full mt-3 overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(selectedPatient.displayScore / 30) * 100}%` }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="h-full bg-gradient-to-r from-emerald-400 to-green-300 shadow-[0_0_15px_rgba(52,211,153,0.5)]"
-                      />
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 min-w-[150px] shadow-lg flex flex-col items-center justify-center">
-                    <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Total Tests</p>
-                    <span className="text-white text-4xl font-black">{patientAssessments.length}</span>
-                    <ClipboardList className="w-4 h-4 text-white/30 mt-2" />
-                  </div>
-                </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column: Assessment List */}
-            <motion.div variants={itemVariants} className="lg:col-span-1 space-y-4">
-              <div className="space-y-4 mb-4">
-                <h2 className="text-xl font-bold text-deepBlue flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5 text-primary" />
-                  Assessment History
-                </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column: Assessment List */}
+              <motion.div variants={itemVariants} className="lg:col-span-1 space-y-4">
+                <div className="space-y-4 mb-4">
+                  <h2 className="text-xl font-bold text-deepBlue flex items-center gap-2">
+                    <ClipboardList className="w-5 h-5 text-primary" />
+                    Assessment History
+                  </h2>
 
-                <div className="bg-gray-50/50 p-3 rounded-2xl border border-gray-100 space-y-3 shadow-sm">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
-                    <span>Filter By Date</span>
-                    {(startDate || endDate) && (
-                      <button
-                        onClick={() => { setStartDate(''); setEndDate(''); }}
-                        className="text-primary hover:text-indigo-700 transition-colors flex items-center gap-1"
-                      >
-                        Reset <ArrowLeft className="w-2.5 h-2.5 rotate-45" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                    <Calendar className="w-3.5 h-3.5 text-secondary mr-2" />
-                    <div className="flex items-center flex-1 justify-between">
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="text-xs outline-none border-none bg-transparent w-full"
-                      />
-                      <span className="mx-2 text-gray-300">-</span>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="text-xs outline-none border-none bg-transparent w-full text-right"
-                      />
+                  <div className="bg-gray-50/50 p-3 rounded-2xl border border-gray-100 space-y-3 shadow-sm">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
+                      <span>Filter By Date</span>
+                      {(startDate || endDate) && (
+                        <button
+                          onClick={() => { setStartDate(''); setEndDate(''); }}
+                          className="text-primary hover:text-indigo-700 transition-colors flex items-center gap-1"
+                        >
+                          Reset <ArrowLeft className="w-2.5 h-2.5 rotate-45" />
+                        </button>
+                      )}
                     </div>
-                  </div>
 
-                  <Button
-                    onClick={downloadHistoryPDF}
-                    disabled={filteredAssessments.length === 0}
-                    className="w-full !py-2.5 text-[10px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 bg-gradient-to-r from-deepBlue to-primary hover:shadow-lg hover:scale-[1.02] transition-all"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    Export Filtered Report
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                {filteredAssessments.length > 0 ? filteredAssessments.map((assessment, index) => (
-                  <motion.div
-                    key={assessment.id || index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ scale: 1.02, x: 5 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedAssessment(assessment)}
-                  >
-                    <div
-                      className={`relative cursor-pointer transition-all duration-300 rounded-2xl overflow-hidden shadow-sm group ${selectedAssessment?.id === assessment.id
-                        ? 'ring-2 ring-primary ring-offset-2 bg-gradient-to-r from-primary/5 to-white p-[1px]'
-                        : 'bg-white hover:shadow-md border border-gray-100'
-                        }`}
+                    <div className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                      <Calendar className="w-3.5 h-3.5 text-secondary mr-2" />
+                      <div className="flex items-center flex-1 justify-between">
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="text-xs outline-none border-none bg-transparent w-full"
+                        />
+                        <span className="mx-2 text-gray-300">-</span>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="text-xs outline-none border-none bg-transparent w-full text-right"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={downloadHistoryPDF}
+                      disabled={filteredAssessments.length === 0}
+                      className="w-full !py-2.5 text-[10px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 bg-gradient-to-r from-deepBlue to-primary hover:shadow-lg hover:scale-[1.02] transition-all"
                     >
-                      {/* Status indicator bar */}
-                      <div
-                        className={`absolute left-0 top-0 bottom-0 w-1.5 ${assessment.total_score >= 24 ? 'bg-green-500' :
-                          assessment.total_score >= 18 ? 'bg-amber-500' : 'bg-red-500'
-                          }`}
-                      />
-
-                      <div className="p-4 pl-6 flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className={`p-2 rounded-xl bg-gray-50 group-hover:bg-primary/10 transition-colors`}>
-                            <Calendar className={`w-5 h-5 ${selectedAssessment?.id === assessment.id ? 'text-primary' : 'text-secondary'
-                              }`} />
-                          </div>
-                          <div>
-                            <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">
-                              {assessment.formattedDate}
-                            </p>
-                            <div className="flex items-center text-xs text-secondary mt-1">
-                              <Activity className="w-3 h-3 mr-1 opacity-60" />
-                              {assessment.formattedTime}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="text-right">
-                          <div className="flex flex-col items-end">
-                            <span className={`text-xl font-black ${getScoreColor(assessment.total_score)}`}>
-                              {assessment.total_score}
-                              <span className="text-[10px] text-gray-400 font-normal ml-0.5">/30</span>
-                            </span>
-                            <div className="mt-1 scale-90 origin-right">
-                              {getStatusBadge(assessment.total_score, assessment.ml_prediction)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {selectedAssessment?.id === assessment.id && (
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-primary opacity-20">
-                          <ChevronRight className="w-8 h-8" />
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )) : (
-                  <div className="py-10 text-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
-                    <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm text-secondary italic">No tests in this range</p>
+                      <Download className="w-3.5 h-3.5" />
+                      Export Filtered Report
+                    </Button>
                   </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Right Column: Chart and Details */}
-            <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
-              {/* Score Trend Graph */}
-              <Card title="Cognitive Score Trend" className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                    <XAxis
-                      dataKey="date"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#64748B', fontSize: 12 }}
-                      dy={10}
-                    />
-                    <YAxis
-                      domain={[0, 30]}
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#64748B', fontSize: 12 }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: '12px',
-                        border: 'none',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="score"
-                      stroke="#4F46E5"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#colorScore)"
-                      animationDuration={1500}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </Card>
-
-              {/* Selected Assessment Detailed View */}
-              <AnimatePresence mode="wait">
-                {selectedAssessment ? (
-                  <motion.div
-                    key={selectedAssessment.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                  >
-                    <Card className="border-l-4 border-primary">
-                      <div className="flex justify-between items-start mb-6">
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-900">Assessment Details</h3>
-                          <p className="text-secondary">
-                            Performed on {selectedAssessment.formattedDate}, {selectedAssessment.formattedTime}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-4xl font-bold ${getScoreColor(selectedAssessment.total_score)}`}>
-                            {selectedAssessment.total_score}/30
-                          </p>
-                          <p className="text-sm font-medium text-secondary">Total Score</p>
-                        </div>
-                      </div>
-
-                      {/* We'll assume the categories are part of the assessment object or mapped from it */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedAssessment.categories?.map((cat) => (
-                          <div key={cat.name} className="p-4 bg-gray-50 rounded-xl">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-sm font-medium text-gray-700">{cat.name}</span>
-                              <span className="font-bold">{cat.score}/{cat.max}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className="bg-primary h-1.5 rounded-full"
-                                style={{ width: `${(cat.score / cat.max) * 100}%` }}
-                              />
-                            </div>
-                          </div>
-                        )) || (
-                            <div className="col-span-2 text-center py-8 text-secondary italic">
-                              Detailed category breakdown for this test is not available.
-                            </div>
-                          )}
-                      </div>
-
-                      {/* ML Prediction Insight */}
-                      {selectedAssessment.ml_prediction && (
-                        <div className="mt-6 p-5 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-2xl border border-indigo-200 shadow-sm overflow-hidden relative group">
-                          <div className="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-700">
-                            <Brain className="w-24 h-24" />
-                          </div>
-                          <h4 className="font-bold text-indigo-900 flex items-center gap-2 mb-3">
-                            <Activity className="w-5 h-5 text-indigo-600" />
-                            ML Prediction Analysis
-                          </h4>
-                          <div className="flex items-center gap-3">
-                            <div className="px-4 py-2 bg-white rounded-xl shadow-sm border border-indigo-100 font-bold text-indigo-700 text-lg">
-                              {selectedAssessment.ml_prediction}
-                            </div>
-                            <p className="text-sm text-indigo-800/80 italic font-medium">
-                              Algorithm analyzed behavior and response patterns for this session.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Detailed Question Breakdown */}
-                      <div className="mt-8 space-y-4">
-                        <div className="flex items-center justify-between mt-8 mb-4">
-                          <h4 className="text-lg font-bold text-deepBlue flex items-center gap-2">
-                            <ClipboardList className="w-5 h-5" />
-                            Detailed Question Analysis
-                          </h4>
-                          <Button
-                            onClick={() => downloadAssessmentPDF(selectedAssessment)}
-                            className="!py-1.5 !px-3 text-xs flex items-center gap-2 bg-gradient-to-r from-primary to-indigo-700 hover:shadow-lg hover:scale-105 transition-all"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            Export PDF Report
-                          </Button>
-                        </div>
-                        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-                          <table className="w-full text-left">
-                            <thead className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
-                              <tr>
-                                <th className="px-6 py-3 font-semibold">Question Type</th>
-                                <th className="px-6 py-3 font-semibold">ML Prediction</th>
-                                <th className="px-6 py-3 font-semibold text-right">Score</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50 text-sm">
-                              {selectedAssessment.questions?.length > 0 ? (
-                                selectedAssessment.questions.map((q, i) => (
-                                  <motion.tr
-                                    key={i}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="hover:bg-primary/5 transition-colors"
-                                  >
-                                    <td className="px-6 py-4 text-gray-700 font-medium">
-                                      <span className="capitalize">{q.type}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                      {q.prediction ? (
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${q.prediction.toLowerCase().includes('correct') || q.prediction.toLowerCase().includes('control')
-                                          ? 'bg-green-100 text-green-700'
-                                          : 'bg-red-100 text-red-700'
-                                          }`}>
-                                          {q.prediction}
-                                        </span>
-                                      ) : (
-                                        <span className="text-gray-300 text-[10px] italic">Not Evaluated</span>
-                                      )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                      <span className={`font-bold ${q.score > 0 ? 'text-primary' : 'text-gray-400'}`}>
-                                        {q.score ?? q.result ?? 0}
-                                      </span>
-                                      <span className="text-gray-400 text-[10px] ml-1">/{q.max || q.max_score || 1}</span>
-                                    </td>
-                                  </motion.tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td colSpan="2" className="px-6 py-8 text-center text-secondary italic">
-                                    Individual question data not available for this session.
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-
-                      {/* Caregiver Summary - Upgraded Medical Advisory Section */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`mt-8 p-6 rounded-3xl border-2 overflow-hidden relative ${selectedAssessment.total_score >= 24
-                          ? "bg-emerald-50/50 border-emerald-100"
-                          : selectedAssessment.total_score >= 18
-                            ? "bg-amber-50/50 border-amber-100"
-                            : "bg-rose-50/50 border-rose-100"
+                </div>
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                  {filteredAssessments.length > 0 ? filteredAssessments.map((assessment, index) => (
+                    <motion.div
+                      key={assessment.id || index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedAssessment(assessment)}
+                    >
+                      <div
+                        className={`relative cursor-pointer transition-all duration-300 rounded-2xl overflow-hidden shadow-sm group ${selectedAssessment?.id === assessment.id
+                          ? 'ring-2 ring-primary ring-offset-2 bg-gradient-to-r from-primary/5 to-white p-[1px]'
+                          : 'bg-white hover:shadow-md border border-gray-100'
                           }`}
                       >
-                        {/* Abstract Background Icon */}
-                        <div className={`absolute -right-6 -bottom-6 opacity-[0.03] rotate-12`}>
-                          <Award className="w-32 h-32" />
-                        </div>
+                        {/* Status indicator bar */}
+                        <div
+                          className={`absolute left-0 top-0 bottom-0 w-1.5 ${assessment.total_score >= 24 ? 'bg-green-500' :
+                            assessment.total_score >= 18 ? 'bg-amber-500' : 'bg-red-500'
+                            }`}
+                        />
 
-                        <div className="relative z-10">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className={`text-lg font-black flex items-center gap-2 ${selectedAssessment.total_score >= 24 ? "text-emerald-900" : selectedAssessment.total_score >= 18 ? "text-amber-900" : "text-rose-900"
-                              }`}>
-                              <Award className={`w-5 h-5 ${selectedAssessment.total_score >= 24 ? "text-emerald-600" : selectedAssessment.total_score >= 18 ? "text-amber-600" : "text-rose-600"
+                        <div className="p-4 pl-6 flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className={`p-2 rounded-xl bg-gray-50 group-hover:bg-primary/10 transition-colors`}>
+                              <Calendar className={`w-5 h-5 ${selectedAssessment?.id === assessment.id ? 'text-primary' : 'text-secondary'
                                 }`} />
-                              Clinical Caregiver Feedback
-                            </h4>
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${selectedAssessment.total_score >= 24
-                              ? "bg-emerald-500 text-white"
-                              : selectedAssessment.total_score >= 18
-                                ? "bg-amber-500 text-white"
-                                : "bg-rose-500 text-white animate-pulse"
-                              }`}>
-                              {selectedAssessment.total_score >= 24 ? "Normal Range" : selectedAssessment.total_score >= 18 ? "Mild Monitoring" : "Immediate Action"}
-                            </span>
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">
+                                {assessment.formattedDate}
+                              </p>
+                              <div className="flex items-center text-xs text-secondary mt-1">
+                                <Activity className="w-3 h-3 mr-1 opacity-60" />
+                                {assessment.formattedTime}
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="space-y-4">
-                            <p className={`leading-relaxed text-sm font-medium ${selectedAssessment.total_score >= 24 ? "text-emerald-800/80" : selectedAssessment.total_score >= 18 ? "text-amber-800/80" : "text-rose-800/80"
-                              }`}>
-                              {selectedAssessment.total_score >= 24
-                                ? "Assessment indicates strong cognitive resilience. The patient's orientation, memory, and executive functions are currently performing at an optimal clinical baseline. Maintain current cognitive stimulus and nutritional routines."
-                                : selectedAssessment.total_score >= 18
-                                  ? "Assessment detects markers of early-stage cognitive decline. While independent function remains intact, there is a measurable impact on recall or attention. We recommend structured cognitive rehabilitation and a neuro-psych review within 3 months."
-                                  : "Assessment indicates significant cognitive impairment across multiple domains. This is considered a high-priority clinical finding. Immediate consultation with a Neurologist or Geriatric Specialist is strongly advised to discuss management strategies."
-                              }
-                            </p>
-
-                            <div className={`pt-4 border-t ${selectedAssessment.total_score >= 24 ? "border-emerald-100/50" : selectedAssessment.total_score >= 18 ? "border-amber-100/50" : "border-rose-100/50"
-                              }`}>
-                              <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
-                                <span className={`flex items-center gap-1.5 ${selectedAssessment.total_score >= 24 ? "text-emerald-600" : selectedAssessment.total_score >= 18 ? "text-amber-600" : "text-rose-600"
-                                  }`}>
-                                  <Activity className="w-3 h-3" />
-                                  Automated Medical Screen
-                                </span>
-                                <span className="text-gray-400">|</span>
-                                <span className="text-gray-400">DementiaDash AI Utility</span>
+                          <div className="text-right">
+                            <div className="flex flex-col items-end">
+                              <span className={`text-xl font-black ${getScoreColor(assessment.total_score)}`}>
+                                {assessment.total_score}
+                                <span className="text-[10px] text-gray-400 font-normal ml-0.5">/30</span>
+                              </span>
+                              <div className="mt-1 scale-90 origin-right">
+                                {getStatusBadge(assessment.total_score, assessment.ml_prediction)}
                               </div>
                             </div>
                           </div>
                         </div>
-                      </motion.div>
-                    </Card>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="h-40 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl text-secondary"
-                  >
-                    Select an assessment from the list to view details
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          </div>
-        </motion.div>
+
+                        {selectedAssessment?.id === assessment.id && (
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 text-primary opacity-20">
+                            <ChevronRight className="w-8 h-8" />
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )) : (
+                    <div className="py-10 text-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                      <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm text-secondary italic">No tests in this range</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Right Column: Chart and Details */}
+              <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
+                {/* Score Trend Graph */}
+                <Card title="Cognitive Score Trend" className="h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <XAxis
+                        dataKey="date"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#64748B', fontSize: 12 }}
+                        dy={10}
+                      />
+                      <YAxis
+                        domain={[0, 30]}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#64748B', fontSize: 12 }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: '12px',
+                          border: 'none',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#4F46E5"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorScore)"
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </Card>
+
+                {/* Selected Assessment Detailed View */}
+                <AnimatePresence mode="wait">
+                  {selectedAssessment ? (
+                    <motion.div
+                      key={selectedAssessment.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                    >
+                      <Card className="border-l-4 border-primary">
+                        <div className="flex justify-between items-start mb-6">
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">Assessment Details</h3>
+                            <p className="text-secondary">
+                              Performed on {selectedAssessment.formattedDate}, {selectedAssessment.formattedTime}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-4xl font-bold ${getScoreColor(selectedAssessment.total_score)}`}>
+                              {selectedAssessment.total_score}/30
+                            </p>
+                            <p className="text-sm font-medium text-secondary">Total Score</p>
+                          </div>
+                        </div>
+
+                        {/* We'll assume the categories are part of the assessment object or mapped from it */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedAssessment.categories?.map((cat) => (
+                            <div key={cat.name} className="p-4 bg-gray-50 rounded-xl">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium text-gray-700">{cat.name}</span>
+                                <span className="font-bold">{cat.score}/{cat.max}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className="bg-primary h-1.5 rounded-full"
+                                  style={{ width: `${(cat.score / cat.max) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          )) || (
+                              <div className="col-span-2 text-center py-8 text-secondary italic">
+                                Detailed category breakdown for this test is not available.
+                              </div>
+                            )}
+                        </div>
+
+                        {/* ML Prediction Insight */}
+                        {selectedAssessment.ml_prediction && (
+                          <div className="mt-6 p-5 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-2xl border border-indigo-200 shadow-sm overflow-hidden relative group">
+                            <div className="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-700">
+                              <Brain className="w-24 h-24" />
+                            </div>
+                            <h4 className="font-bold text-indigo-900 flex items-center gap-2 mb-3">
+                              <Activity className="w-5 h-5 text-indigo-600" />
+                              ML Prediction Analysis
+                            </h4>
+                            <div className="flex items-center gap-3">
+                              <div className="px-4 py-2 bg-white rounded-xl shadow-sm border border-indigo-100 font-bold text-indigo-700 text-lg">
+                                {selectedAssessment.ml_prediction}
+                              </div>
+                              <p className="text-sm text-indigo-800/80 italic font-medium">
+                                Algorithm analyzed behavior and response patterns for this session.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Caregiver Summary - Upgraded Medical Advisory Section */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`mt-6 p-6 rounded-3xl border-2 overflow-hidden relative ${selectedAssessment.total_score >= 24
+                            ? "bg-emerald-50/50 border-emerald-100"
+                            : selectedAssessment.total_score >= 18
+                              ? "bg-amber-50/50 border-amber-100"
+                              : "bg-rose-50/50 border-rose-100"
+                            }`}
+                        >
+                          {/* Abstract Background Icon */}
+                          <div className={`absolute -right-6 -bottom-6 opacity-[0.03] rotate-12`}>
+                            <Award className="w-32 h-32" />
+                          </div>
+
+                          <div className="relative z-10">
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className={`text-lg font-black flex items-center gap-2 ${selectedAssessment.total_score >= 24 ? "text-emerald-900" : selectedAssessment.total_score >= 18 ? "text-amber-900" : "text-rose-900"
+                                }`}>
+                                <Award className={`w-5 h-5 ${selectedAssessment.total_score >= 24 ? "text-emerald-600" : selectedAssessment.total_score >= 18 ? "text-amber-600" : "text-rose-600"
+                                  }`} />
+                                Clinical Caregiver Feedback
+                              </h4>
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${selectedAssessment.total_score >= 24
+                                ? "bg-emerald-500 text-white"
+                                : selectedAssessment.total_score >= 18
+                                  ? "bg-amber-500 text-white"
+                                  : "bg-rose-500 text-white animate-pulse"
+                                }`}>
+                                {selectedAssessment.total_score >= 24 ? "Normal Range" : selectedAssessment.total_score >= 18 ? "Mild Monitoring" : "Immediate Action"}
+                              </span>
+                            </div>
+
+                            <div className="space-y-4">
+                              <p className={`leading-relaxed text-sm font-medium ${selectedAssessment.total_score >= 24 ? "text-emerald-800/80" : selectedAssessment.total_score >= 18 ? "text-amber-800/80" : "text-rose-800/80"
+                                }`}>
+                                {selectedAssessment.total_score >= 24
+                                  ? "Assessment indicates strong cognitive resilience. The patient's orientation, memory, and executive functions are currently performing at an optimal clinical baseline. Maintain current cognitive stimulus and nutritional routines."
+                                  : selectedAssessment.total_score >= 18
+                                    ? "Assessment detects markers of early-stage cognitive decline. While independent function remains intact, there is a measurable impact on recall or attention. We recommend structured cognitive rehabilitation and a neuro-psych review within 3 months."
+                                    : "Assessment indicates significant cognitive impairment across multiple domains. This is considered a high-priority clinical finding. Immediate consultation with a Neurologist or Geriatric Specialist is strongly advised to discuss management strategies."
+                                }
+                              </p>
+
+                              <div className={`pt-4 border-t ${selectedAssessment.total_score >= 24 ? "border-emerald-100/50" : selectedAssessment.total_score >= 18 ? "border-amber-100/50" : "border-rose-100/50"
+                                }`}>
+                                <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
+                                  <span className={`flex items-center gap-1.5 ${selectedAssessment.total_score >= 24 ? "text-emerald-600" : selectedAssessment.total_score >= 18 ? "text-amber-600" : "text-rose-600"
+                                    }`}>
+                                    <Activity className="w-3 h-3" />
+                                    Automated Medical Screen
+                                  </span>
+                                  <span className="text-gray-400">|</span>
+                                  <span className="text-gray-400">DementiaDash AI Utility</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        {/* Detailed Question Breakdown */}
+                        <div className="mt-8 space-y-4">
+                          <div className="flex items-center justify-between mt-8 mb-4">
+                            <h4 className="text-lg font-bold text-deepBlue flex items-center gap-2">
+                              <ClipboardList className="w-5 h-5" />
+                              Detailed Question Analysis
+                            </h4>
+                            <Button
+                              onClick={() => downloadAssessmentPDF(selectedAssessment)}
+                              className="!py-1.5 !px-3 text-xs flex items-center gap-2 bg-gradient-to-r from-primary to-indigo-700 hover:shadow-lg hover:scale-105 transition-all"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Export PDF Report
+                            </Button>
+                          </div>
+                          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                            <table className="w-full text-left">
+                              <thead className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                                <tr>
+                                  <th className="px-6 py-3 font-semibold">Question Type</th>
+                                  <th className="px-6 py-3 font-semibold">ML Prediction</th>
+                                  <th className="px-6 py-3 font-semibold text-right">Score</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-50 text-sm">
+                                {selectedAssessment.questions?.length > 0 ? (
+                                  selectedAssessment.questions.map((q, i) => (
+                                    <motion.tr
+                                      key={i}
+                                      initial={{ opacity: 0, x: -10 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: i * 0.05 }}
+                                      className="hover:bg-primary/5 transition-colors"
+                                    >
+                                      <td className="px-6 py-4 text-gray-700 font-medium">
+                                        <span className="capitalize">{q.type}</span>
+                                      </td>
+                                      <td className="px-6 py-4">
+                                        {q.prediction ? (
+                                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${q.prediction.toLowerCase().includes('correct') || q.prediction.toLowerCase().includes('control')
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
+                                            }`}>
+                                            {q.prediction}
+                                          </span>
+                                        ) : (
+                                          <span className="text-gray-300 text-[10px] italic">Not Evaluated</span>
+                                        )}
+                                      </td>
+                                      <td className="px-6 py-4 text-right">
+                                        {(() => {
+                                          const qScore = q.question_score ?? q.score ?? q.result ?? 0;
+                                          return (
+                                            <span className={`font-bold ${qScore > 0 ? 'text-primary' : 'text-gray-400'}`}>
+                                              {qScore}
+                                            </span>
+                                          );
+                                        })()}
+                                        <span className="text-gray-400 text-[10px] ml-1">/{q.max || q.max_score || 1}</span>
+                                      </td>
+                                    </motion.tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan="3" className="px-6 py-8 text-center text-secondary italic">
+                                      Individual question data not available for this session.
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="h-40 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl text-secondary"
+                    >
+                      Select an assessment from the list to view details
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Module Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-deepBlue mb-1">MMSE Dashboard</h1>
-            <p className="text-secondary">Manage and monitor cognitive assessments for all patients</p>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="dashboard-home"
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={containerVariants}
+          className="space-y-10"
+        >
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <motion.div variants={itemVariants}>
+              <h1 className="text-4xl font-black text-deepBlue tracking-tight">MMSE Dashboard</h1>
+              <p className="text-secondary font-medium mt-1">Manage and monitor cognitive assessments for all patients</p>
+            </motion.div>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
-              <input
-                type="text"
-                placeholder="Search patient or ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-64 text-sm"
-              />
+
+          {/* Top Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <StatCard
+              index={0}
+              title="Total Patients"
+              value={patients.length}
+              icon={Users}
+            />
+            <StatCard
+              index={1}
+              title="Total Assessments"
+              value={dashboardStats.totalAll}
+              icon={FileText}
+            />
+            <StatCard
+              index={2}
+              title="Avg. Cognitive Score"
+              value={patients.length > 0
+                ? (patients.reduce((acc, p) => acc + (parseFloat(p.displayScore) || 0), 0) / patients.length).toFixed(1)
+                : '0.0'}
+              icon={Activity}
+            />
+            <StatCard
+              index={3}
+              title="Completed"
+              value={dashboardStats.totalCompleted}
+              icon={CheckCircle}
+            />
+            <StatCard
+              index={4}
+              title="In-Progress"
+              value={dashboardStats.totalInProgress}
+              icon={Clock}
+            />
+            <StatCard
+              index={5}
+              title="Tests This Month"
+              value={dashboardStats.testsThisMonth}
+              icon={ClipboardList}
+            />
+          </div>
+
+          {/* Patients Grid */}
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-2xl font-bold text-deepBlue flex items-center gap-2">
+                <Users className="w-6 h-6 text-primary" />
+                Managed Patients
+              </h2>
+
+              <motion.div variants={itemVariants} className="relative w-full md:w-72 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search by name or ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl shadow-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all font-medium text-xs"
+                />
+              </motion.div>
             </div>
-            <button className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">
-              <Filter className="w-5 h-5 text-secondary" />
-            </button>
-          </div>
-        </div>
 
-        {/* Top Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard
-            title="Total Patients"
-            value={patients.length}
-            icon={Users}
-            className="from-blue-500/10 to-transparent bg-gradient-to-br"
-          />
-          <StatCard
-            title="Total Assessments"
-            value={dashboardStats.totalAll}
-            icon={FileText}
-          />
-          <StatCard
-            title="Avg. Cognitive Score"
-            value={patients.length > 0
-              ? (patients.reduce((acc, p) => acc + (parseFloat(p.displayScore) || 0), 0) / patients.length).toFixed(1)
-              : '0.0'}
-            icon={Activity}
-          />
-          <StatCard
-            title="Completed"
-            value={dashboardStats.totalCompleted}
-            icon={CheckCircle}
-            className="from-emerald-500/10 to-transparent bg-gradient-to-br"
-          />
-          <StatCard
-            title="In-Progress"
-            value={dashboardStats.totalInProgress}
-            icon={Clock}
-            className="from-amber-500/10 to-transparent bg-gradient-to-br"
-          />
-          <StatCard
-            title="Tests This Month"
-            value={dashboardStats.testsThisMonth}
-            icon={ClipboardList}
-          />
-        </div>
-
-        {/* Patients Grid */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-deepBlue flex items-center gap-2">
-            <Users className="w-6 h-6" />
-            Managed Patients
-          </h2>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {loading ? (
-              Array(6).fill(0).map((_, i) => (
-                <div key={i} className="h-48 bg-white border border-gray-100 rounded-2xl animate-pulse" />
-              ))
-            ) : filteredPatients.length > 0 ? (
-              filteredPatients.map((patient) => (
-                <motion.div
-                  key={patient.user_id}
-                  variants={itemVariants}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  onClick={() => handlePatientClick(patient)}
-                >
-                  <Card className="p-0 overflow-hidden cursor-pointer group bg-white border-none ring-1 ring-gray-100 hover:shadow-2xl hover:ring-primary/20 transition-all duration-500">
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="flex items-center space-x-4">
-                          <div className="relative">
-                            <div className="w-14 h-14 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center group-hover:from-primary group-hover:to-indigo-600 transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/30">
-                              <User className="w-7 h-7 text-gray-400 group-hover:text-white transition-colors duration-500" />
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {loading ? (
+                Array(6).fill(0).map((_, i) => (
+                  <div key={i} className="h-48 bg-white border border-gray-100 rounded-2xl animate-pulse" />
+                ))
+              ) : filteredPatients.length > 0 ? (
+                filteredPatients.map((patient) => (
+                  <motion.div
+                    key={patient.user_id}
+                    variants={itemVariants}
+                    whileHover={{ y: -8, scale: 1.02 }}
+                    onClick={() => handlePatientClick(patient)}
+                  >
+                    <Card className="p-0 overflow-hidden cursor-pointer group bg-white border-none ring-1 ring-gray-100 hover:shadow-2xl hover:ring-primary/20 transition-all duration-500">
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="flex items-center space-x-4">
+                            <div className="relative">
+                              <div className="w-14 h-14 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center group-hover:from-primary group-hover:to-indigo-600 transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/30">
+                                <User className="w-7 h-7 text-gray-400 group-hover:text-white transition-colors duration-500" />
+                              </div>
+                              <div className="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                              </div>
                             </div>
-                            <div className="absolute -right-1 -top-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                            <div>
+                              <h3 className="font-black text-gray-900 line-clamp-1 text-lg group-hover:text-primary transition-colors">{patient.displayName}</h3>
+                              <p className="text-[10px] font-bold text-secondary tracking-widest uppercase mt-0.5">UID: {patient.user_id?.split('-').pop()}</p>
                             </div>
                           </div>
-                          <div>
-                            <h3 className="font-black text-gray-900 line-clamp-1 text-lg group-hover:text-primary transition-colors">{patient.displayName}</h3>
-                            <p className="text-[10px] font-bold text-secondary tracking-widest uppercase mt-0.5">UID: {patient.user_id?.split('-').pop()}</p>
-                          </div>
+                          {getStatusBadge(patient.displayScore, patient.displayML)}
                         </div>
-                        {getStatusBadge(patient.displayScore, patient.displayML)}
-                      </div>
 
-                      <div className="space-y-4">
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <p className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">Overall Core Score</p>
-                            <div className="flex items-baseline gap-1">
-                              <span className={`text-3xl font-black ${getScoreColor(patient.displayScore)}`}>
-                                {patient.displayScore ?? '0'}
+                        <div className="space-y-4">
+                          <div className="flex items-end justify-between">
+                            <div>
+                              <p className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-1">Overall Core Score</p>
+                              <div className="flex items-baseline gap-1">
+                                <span className={`text-3xl font-black ${getScoreColor(patient.displayScore)}`}>
+                                  {patient.displayScore ?? '0'}
+                                </span>
+                                <span className="text-secondary text-sm font-medium">/30</span>
+                              </div>
+                            </div>
+                            <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${(patient.displayScore / 30) * 100}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className={`h-full ${patient.displayScore >= 24 ? 'bg-green-500' :
+                                  patient.displayScore >= 18 ? 'bg-amber-500' : 'bg-red-500'
+                                  } shadow-[0_0_8px_rgba(0,0,0,0.1)]`}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-50">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase">Last Activity</span>
+                              <span className="text-xs font-bold text-gray-700 mt-1 flex items-center">
+                                <Calendar className="w-3 h-3 mr-1 text-primary opacity-50" />
+                                {patient.displayDate ? new Date(patient.displayDate).toLocaleDateString() : 'Never'}
                               </span>
-                              <span className="text-secondary text-sm font-medium">/30</span>
                             </div>
-                          </div>
-                          <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${(patient.displayScore / 30) * 100}%` }}
-                              transition={{ duration: 1, ease: "easeOut" }}
-                              className={`h-full ${patient.displayScore >= 24 ? 'bg-green-500' :
-                                patient.displayScore >= 18 ? 'bg-amber-500' : 'bg-red-500'
-                                } shadow-[0_0_8px_rgba(0,0,0,0.1)]`}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-50">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase">Last Activity</span>
-                            <span className="text-xs font-bold text-gray-700 mt-1 flex items-center">
-                              <Calendar className="w-3 h-3 mr-1 text-primary opacity-50" />
-                              {patient.displayDate ? new Date(patient.displayDate).toLocaleDateString() : 'Never'}
-                            </span>
-                          </div>
-                          <div className="flex flex-col text-right">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase">Assessments</span>
-                            <span className="text-xs font-bold text-gray-700 mt-1 uppercase italic">
-                              {patient.totalTests} total
-                            </span>
+                            <div className="flex flex-col text-right">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase">Assessments</span>
+                              <span className="text-xs font-bold text-gray-700 mt-1 uppercase italic">
+                                {patient.totalTests} total
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="px-6 py-4 bg-gray-50/50 group-hover:bg-primary transition-colors duration-500 flex items-center justify-between text-secondary group-hover:text-white font-bold text-xs uppercase tracking-widest">
-                      <span>Access Medical Profile</span>
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Card>
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full py-20 text-center">
-                <div className="bg-gray-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-10 h-10 text-gray-300" />
+                      <div className="px-6 py-4 bg-gray-50/50 group-hover:bg-primary transition-colors duration-500 flex items-center justify-between text-secondary group-hover:text-white font-bold text-xs uppercase tracking-widest">
+                        <span>Access Medical Profile</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-full py-20 text-center">
+                  <div className="bg-gray-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-10 h-10 text-gray-300" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">No patients found</h3>
+                  <p className="text-secondary">Try adjusting your search terms</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">No patients found</h3>
-                <p className="text-secondary">Try adjusting your search terms</p>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </div>
+              )}
+            </motion.div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </Layout>
   );
 };
