@@ -8,20 +8,20 @@ const Button = ({
   disabled = false,
   fullWidth = false
 }) => {
-  const baseStyles = 'font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseStyles = 'font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-[0.98]';
 
   const variants = {
-    primary: 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg focus:ring-primary disabled:opacity-50',
-    secondary: 'bg-secondaryBg text-gray-900 hover:bg-gray-200 focus:ring-secondary',
-    outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
-    danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500',
-    ghost: 'text-gray-900 hover:bg-secondaryBg'
+    primary: 'bg-gradient-to-r from-primary to-accent text-white hover:shadow-glow focus:ring-primary disabled:opacity-50 hover:brightness-110',
+    secondary: 'glass text-gray-800 hover:bg-white/80 focus:ring-secondary',
+    outline: 'border border-primary/30 text-primary hover:bg-primary/5 focus:ring-primary bg-white/50',
+    danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg focus:ring-red-500',
+    ghost: 'text-primary hover:bg-primary/5 font-medium'
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-6 py-2.5 text-base',
-    lg: 'px-8 py-3 text-lg'
+    sm: 'px-3.5 py-1.5 text-sm',
+    md: 'px-5 py-2.5 text-sm',
+    lg: 'px-8 py-3 text-base'
   };
 
   const widthClass = fullWidth ? 'w-full' : '';
