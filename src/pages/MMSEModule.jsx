@@ -586,9 +586,9 @@ const MMSEModule = () => {
                 <div className="absolute -right-20 -top-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-accent/20 rounded-full blur-2xl" />
 
-                <div className="relative p-8 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                  <div className="flex items-center space-x-6">
-                    <div className="relative">
+                <div className="relative p-6 md:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start lg:items-center gap-6">
+                    <div className="relative shrink-0">
                       <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-2xl border border-white/30">
                         <User className="w-10 h-10 text-white" />
                       </div>
@@ -596,24 +596,25 @@ const MMSEModule = () => {
                         <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                       </div>
                     </div>
-                    <div className="text-white">
-                      <h1 className="text-3xl font-black tracking-tight">{selectedPatient.displayName}</h1>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="text-xs font-bold bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-white/90 uppercase tracking-wider">
+                    <div className="text-white text-center sm:text-left">
+                      <h1 className="text-2xl md:text-3xl font-black tracking-tight">{selectedPatient.displayName}</h1>
+                      <div className="flex flex-col sm:flex-row items-center sm:items-start lg:items-center mt-3 gap-3">
+                        <span className="text-[10px] md:text-xs font-bold bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-white/90 uppercase tracking-wider break-all text-center sm:text-left shadow-sm">
                           Patient ID: {selectedPatient.user_id}
                         </span>
-                        <span className="flex items-center text-[10px] font-bold uppercase tracking-widest text-white/70">
-                          <Activity className="w-3.5 h-3.5 mr-1 text-emerald-400" />
+                        <span className="flex items-center text-[10px] font-bold uppercase tracking-widest text-white/70 bg-white/5 sm:bg-transparent px-3 py-1 sm:p-0 rounded-full">
+                          <Activity className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
                           Active Clinical File
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-4">
-                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 min-w-[150px] shadow-lg">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:w-auto">
+                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-lg min-w-[140px] flex flex-col items-center justify-center">
                       <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Latest Score</p>
-                      <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-white text-4xl font-black">{selectedPatient.displayScore ?? '0'}</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-white text-3xl md:text-4xl font-black">{selectedPatient.displayScore ?? '0'}</span>
                         <span className="text-white/40 text-xs font-bold">/30</span>
                       </div>
                       <div className="w-full bg-black/20 h-1.5 rounded-full mt-3 overflow-hidden">
@@ -625,9 +626,9 @@ const MMSEModule = () => {
                         />
                       </div>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 min-w-[150px] shadow-lg flex flex-col items-center justify-center">
+                    <div className="bg-white/10 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-lg flex flex-col items-center justify-center min-w-[140px]">
                       <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Total Tests</p>
-                      <span className="text-white text-4xl font-black">{patientAssessments.length}</span>
+                      <span className="text-white text-3xl md:text-4xl font-black">{patientAssessments.length}</span>
                       <ClipboardList className="w-4 h-4 text-white/30 mt-2" />
                     </div>
                   </div>
@@ -946,7 +947,7 @@ const MMSEModule = () => {
                               Export PDF Report
                             </Button>
                           </div>
-                          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                          <div className="bg-white border border-gray-100 rounded-2xl overflow-x-auto shadow-sm">
                             <table className="w-full text-left">
                               <thead className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
                                 <tr>
@@ -1043,7 +1044,7 @@ const MMSEModule = () => {
           </div>
 
           {/* Top Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-6 md:gap-8">
             <StatCard
               index={0}
               title="Total Patients"
