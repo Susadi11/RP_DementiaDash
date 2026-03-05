@@ -1,6 +1,9 @@
-const Card = ({ children, className = '', padding = 'p-6', shadow = 'shadow-sm', rounded = 'rounded-xl' }) => {
+const Card = ({ children, className = '', padding = 'p-6', shadow = 'shadow-glass-sm', rounded = 'rounded-2xl', onClick }) => {
   return (
-    <div className={`bg-white ${shadow} ${rounded} ${padding} ${className}`}>
+    <div
+      className={`glass ${shadow} ${rounded} ${padding} ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      onClick={onClick}
+    >
       {children}
     </div>
   );

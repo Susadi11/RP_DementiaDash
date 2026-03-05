@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { 
-  Download, Calendar, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, 
-  Info, Clock, MessageCircle, Activity, FileText, MessageSquare, RefreshCw, 
-  Edit3, HelpCircle, Pause, Mic, Heart, Timer, Moon, TrendingDown, Brain, Target
+import {
+  Download, Calendar, ChevronDown, ChevronUp, AlertTriangle, CheckCircle,
+  Info, Clock, MessageCircle, Activity, FileText, MessageSquare, RefreshCw,
+  Edit3, HelpCircle, Pause, Mic, Heart, Timer, Moon, TrendingDown, Brain, Target,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Card from '../components/common/Card';
@@ -110,30 +111,26 @@ const PARAMETER_EXPLANATIONS = {
   }
 };
 
-// Get day name from date
 const getDayName = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { weekday: 'long' });
 };
 
-// Format date for display
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-// Get time window display name
 const getTimeWindowName = (timeWindow) => {
   const names = {
-    'morning': 'Morning (6AM - 12PM)',
-    'afternoon': 'Afternoon (12PM - 6PM)',
-    'evening': 'Evening (6PM - 12AM)',
-    'night': 'Night (12AM - 6AM)'
+    'morning': 'Morning (6AM – 12PM)',
+    'afternoon': 'Afternoon (12PM – 6PM)',
+    'evening': 'Evening (6PM – 12AM)',
+    'night': 'Night (12AM – 6AM)'
   };
   return names[timeWindow] || timeWindow;
 };
 
-// Calculate risk level from session score
 const getRiskLevel = (score) => {
   if (score <= 6) return { level: 'Low', color: 'green', description: 'Everything looks good!' };
   if (score <= 12) return { level: 'Mild', color: 'yellow', description: 'Some minor concerns noticed' };
@@ -142,24 +139,33 @@ const getRiskLevel = (score) => {
   return { level: 'Critical', color: 'darkred', description: 'Immediate attention needed' };
 };
 
-// Get color class for risk level
 const getRiskColorClass = (color) => {
   const colorMap = {
-    green: 'bg-green-100 text-green-800 border-green-200',
-    yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    orange: 'bg-orange-100 text-orange-800 border-orange-200',
-    red: 'bg-red-100 text-red-800 border-red-200',
-    darkred: 'bg-red-200 text-red-900 border-red-300'
+    green: 'bg-emerald-50/70 text-emerald-800 border-emerald-200/60',
+    yellow: 'bg-amber-50/70 text-amber-800 border-amber-200/60',
+    orange: 'bg-orange-50/70 text-orange-800 border-orange-200/60',
+    red: 'bg-red-50/70 text-red-800 border-red-200/60',
+    darkred: 'bg-red-100/70 text-red-900 border-red-300/60'
   };
   return colorMap[color] || colorMap.green;
 };
 
-// Parameter score indicator
+const getRiskBadgeClass = (color) => {
+  const colorMap = {
+    green: 'bg-emerald-100 text-emerald-700',
+    yellow: 'bg-amber-100 text-amber-700',
+    orange: 'bg-orange-100 text-orange-700',
+    red: 'bg-red-100 text-red-700',
+    darkred: 'bg-red-200 text-red-800'
+  };
+  return colorMap[color] || colorMap.green;
+};
+
 const getParameterScoreColor = (score) => {
-  if (score === 0) return 'bg-green-100 text-green-700';
-  if (score === 1) return 'bg-yellow-100 text-yellow-700';
-  if (score === 2) return 'bg-orange-100 text-orange-700';
-  return 'bg-red-100 text-red-700';
+  if (score === 0) return 'bg-emerald-50/80 text-emerald-700 border-emerald-100/60';
+  if (score === 1) return 'bg-amber-50/80 text-amber-700 border-amber-100/60';
+  if (score === 2) return 'bg-orange-50/80 text-orange-700 border-orange-100/60';
+  return 'bg-red-50/80 text-red-700 border-red-100/60';
 };
 
 const getParameterScoreLabel = (score) => {
@@ -167,6 +173,13 @@ const getParameterScoreLabel = (score) => {
   if (score === 1) return 'Mild';
   if (score === 2) return 'Moderate';
   return 'Concerning';
+};
+
+const getParameterDotColor = (score) => {
+  if (score === 0) return 'bg-emerald-400';
+  if (score === 1) return 'bg-amber-400';
+  if (score === 2) return 'bg-orange-400';
+  return 'bg-red-400';
 };
 
 const ChatModule = () => {
@@ -178,7 +191,6 @@ const ChatModule = () => {
   const [weeklyRisk, setWeeklyRisk] = useState(null);
   const [patient, setPatient] = useState(null);
   const [selectedWeek, setSelectedWeek] = useState(() => {
-    // Get current week start (Monday)
     const now = new Date();
     const dayOfWeek = now.getDay();
     const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
@@ -186,36 +198,31 @@ const ChatModule = () => {
     return monday.toISOString().split('T')[0];
   });
 
-  // Fetch patient and sessions data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Get linked patient
+
         const patientsData = await getLinkedPatientsDetails();
         if (patientsData.success && patientsData.patients?.length > 0) {
           setPatient(patientsData.patients[0]);
-          
+
           const userId = patientsData.patients[0].user_id;
-          
-          // Calculate week end (Sunday)
+
           const weekStart = new Date(selectedWeek);
           const weekEnd = new Date(weekStart);
           weekEnd.setDate(weekEnd.getDate() + 6);
-          
-          // Fetch sessions for the week
+
           const sessionsData = await getPatientSessions(
             userId,
             selectedWeek,
             weekEnd.toISOString().split('T')[0]
           );
-          
+
           if (sessionsData.success) {
             setSessions(sessionsData.sessions || []);
           }
-          
-          // Fetch weekly risk
+
           try {
             const riskData = await getWeeklyRisk(userId, selectedWeek);
             if (riskData.success) {
@@ -232,11 +239,10 @@ const ChatModule = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [selectedWeek]);
 
-  // Group sessions by day
   const sessionsByDay = sessions.reduce((acc, session) => {
     const date = session.date;
     if (!acc[date]) {
@@ -246,7 +252,6 @@ const ChatModule = () => {
     return acc;
   }, {});
 
-  // Sort days and limit to 4 sessions per day
   const sortedDays = Object.keys(sessionsByDay).sort((a, b) => new Date(b) - new Date(a));
 
   const toggleDay = (date) => {
@@ -263,7 +268,7 @@ const ChatModule = () => {
     }));
   };
 
-  // Generate PDF Report
+  // Generate PDF Report (unchanged logic)
   const generateWeeklyPDFReport = () => {
     if (!patient || sessions.length === 0) {
       alert('No data available to generate report');
@@ -274,13 +279,11 @@ const ChatModule = () => {
     const pageWidth = doc.internal.pageSize.getWidth();
     let yPos = 20;
 
-    // Title
     doc.setFontSize(20);
     doc.setTextColor(0, 51, 102);
     doc.text('Weekly Behavior Report', pageWidth / 2, yPos, { align: 'center' });
     yPos += 10;
 
-    // Subtitle
     doc.setFontSize(12);
     doc.setTextColor(100);
     doc.text(`Patient: ${patient.full_name || 'Patient'}`, pageWidth / 2, yPos, { align: 'center' });
@@ -290,7 +293,6 @@ const ChatModule = () => {
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos, { align: 'center' });
     yPos += 15;
 
-    // Weekly Summary
     doc.setFontSize(14);
     doc.setTextColor(0, 51, 102);
     doc.text('Weekly Summary', 20, yPos);
@@ -300,7 +302,7 @@ const ChatModule = () => {
     doc.setTextColor(60);
     doc.text(`Total Sessions: ${sessions.length}`, 20, yPos);
     yPos += 6;
-    
+
     if (weeklyRisk) {
       doc.text(`Weekly Risk Level: ${weeklyRisk.risk_level || 'N/A'}`, 20, yPos);
       yPos += 6;
@@ -309,22 +311,19 @@ const ChatModule = () => {
     }
     yPos += 10;
 
-    // Daily Breakdown
     doc.setFontSize(14);
     doc.setTextColor(0, 51, 102);
     doc.text('Daily Session Details', 20, yPos);
     yPos += 10;
 
-    sortedDays.forEach((date, dayIndex) => {
+    sortedDays.forEach((date) => {
       const daySessions = sessionsByDay[date].slice(0, 4);
-      
-      // Check if we need a new page
+
       if (yPos > 250) {
         doc.addPage();
         yPos = 20;
       }
 
-      // Day header
       doc.setFontSize(12);
       doc.setTextColor(0, 51, 102);
       doc.text(`${getDayName(date)} - ${formatDate(date)}`, 20, yPos);
@@ -332,7 +331,7 @@ const ChatModule = () => {
 
       daySessions.forEach((session, idx) => {
         const risk = getRiskLevel(session.session_raw_score || 0);
-        
+
         doc.setFontSize(10);
         doc.setTextColor(60);
         doc.text(`Session ${idx + 1} (${getTimeWindowName(session.time_window).replace(/[^\w\s()-]/g, '')})`, 25, yPos);
@@ -342,7 +341,6 @@ const ChatModule = () => {
         doc.text(`Score: ${session.session_raw_score || 0}/36`, 30, yPos);
         yPos += 8;
 
-        // Key parameters with concerns
         const concerningParams = Object.entries(session)
           .filter(([key, value]) => key.startsWith('p') && key.includes('_') && value >= 2)
           .slice(0, 3);
@@ -351,7 +349,7 @@ const ChatModule = () => {
           doc.setTextColor(180, 0, 0);
           doc.text('Areas of Concern:', 30, yPos);
           yPos += 5;
-          concerningParams.forEach(([key, value]) => {
+          concerningParams.forEach(([key]) => {
             const param = PARAMETER_EXPLANATIONS[key];
             if (param) {
               doc.text(`- ${param.name}: ${param.simple}`, 35, yPos);
@@ -364,7 +362,6 @@ const ChatModule = () => {
       yPos += 5;
     });
 
-    // Recommendations
     if (yPos > 230) {
       doc.addPage();
       yPos = 20;
@@ -377,7 +374,7 @@ const ChatModule = () => {
 
     doc.setFontSize(10);
     doc.setTextColor(60);
-    
+
     const recommendations = weeklyRisk?.interpretation?.recommendations || [
       'Continue regular monitoring',
       'Maintain consistent daily routines',
@@ -390,7 +387,6 @@ const ChatModule = () => {
       yPos += 6;
     });
 
-    // Footer
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -400,12 +396,10 @@ const ChatModule = () => {
       doc.text('Dementia Care Dashboard - Confidential', 20, doc.internal.pageSize.getHeight() - 10);
     }
 
-    // Save PDF
     const fileName = `Weekly_Report_${patient.full_name?.replace(/\s+/g, '_') || 'Patient'}_${selectedWeek}.pdf`;
     doc.save(fileName);
   };
 
-  // Change week
   const changeWeek = (direction) => {
     const current = new Date(selectedWeek);
     current.setDate(current.getDate() + (direction * 7));
@@ -416,7 +410,10 @@ const ChatModule = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="flex flex-col items-center space-y-3">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
+            <p className="text-sm text-secondary">Loading sessions...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -424,32 +421,35 @@ const ChatModule = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-deepBlue mb-2">Chat & Conversation Analysis</h1>
-            <p className="text-secondary">Daily session reports with easy-to-understand insights</p>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Chat & Conversation Analysis</h1>
+            <p className="text-sm text-secondary mt-0.5">Daily session reports with easy-to-understand insights</p>
           </div>
           <Button onClick={generateWeeklyPDFReport} className="flex items-center space-x-2">
             <Download className="w-4 h-4" />
-            <span>Download Weekly Report</span>
+            <span>Download Report</span>
           </Button>
         </div>
 
         {/* Patient Info */}
         {patient && (
-          <Card className="bg-primary/5">
+          <Card className="!bg-gradient-to-br !from-deepBlue/5 !to-primary/5 !border-primary/10">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-deepBlue mb-1">{patient.full_name || 'Patient'}</h2>
-                <p className="text-gray-700">Age: {patient.age || 'N/A'} years | Status: {patient.account_status || 'Active'}</p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center space-x-2 text-secondary mb-1">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm">Week of {formatDate(selectedWeek)}</span>
+                <h2 className="text-lg font-semibold text-gray-900">{patient.full_name || 'Patient'}</h2>
+                <div className="flex items-center space-x-2 text-sm text-secondary mt-0.5">
+                  <span>Age: {patient.age || 'N/A'}</span>
+                  <span className="w-1 h-1 bg-secondary/40 rounded-full"></span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${patient.account_status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                    }`}>{patient.account_status || 'Active'}</span>
                 </div>
+              </div>
+              <div className="flex items-center space-x-2 text-secondary">
+                <Calendar className="w-3.5 h-3.5" />
+                <span className="text-xs">Week of {formatDate(selectedWeek)}</span>
               </div>
             </div>
           </Card>
@@ -457,57 +457,75 @@ const ChatModule = () => {
 
         {/* Week Navigation */}
         <div className="flex items-center justify-center space-x-4">
-          <Button variant="outline" onClick={() => changeWeek(-1)}>
-            ← Previous Week
-          </Button>
-          <span className="text-lg font-semibold text-deepBlue">
-            {formatDate(selectedWeek)} - {formatDate(new Date(new Date(selectedWeek).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString())}
-          </span>
-          <Button variant="outline" onClick={() => changeWeek(1)}>
-            Next Week →
-          </Button>
+          <button
+            onClick={() => changeWeek(-1)}
+            className="p-2 glass rounded-xl hover:bg-white/80 transition-all duration-200 active:scale-95"
+          >
+            <ChevronLeft className="w-5 h-5 text-secondary" />
+          </button>
+          <div className="px-5 py-2 glass rounded-xl">
+            <span className="text-sm font-semibold text-gray-800">
+              {formatDate(selectedWeek)} — {formatDate(new Date(new Date(selectedWeek).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString())}
+            </span>
+          </div>
+          <button
+            onClick={() => changeWeek(1)}
+            className="p-2 glass rounded-xl hover:bg-white/80 transition-all duration-200 active:scale-95"
+          >
+            <ChevronRight className="w-5 h-5 text-secondary" />
+          </button>
         </div>
 
         {/* Weekly Risk Summary */}
         {weeklyRisk && (
-          <Card className={`border-l-4 ${getRiskColorClass(weeklyRisk.interpretation?.color || 'green')}`}>
+          <Card className={`!border-l-[3px] ${getRiskColorClass(weeklyRisk.interpretation?.color || 'green')}`}>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Weekly Overview</h3>
-                <p className="text-secondary">Risk Level: <span className="font-semibold">{weeklyRisk.risk_level}</span></p>
-                <p className="text-sm text-gray-600 mt-1">{weeklyRisk.interpretation?.description}</p>
+                <h3 className="text-base font-semibold text-gray-900">Weekly Overview</h3>
+                <p className="text-sm text-secondary mt-0.5">
+                  Risk Level: <span className={`font-semibold px-2 py-0.5 rounded-full text-xs ${getRiskBadgeClass(weeklyRisk.interpretation?.color || 'green')}`}>{weeklyRisk.risk_level}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1.5">{weeklyRisk.interpretation?.description}</p>
               </div>
               <div className="text-right">
-                <p className="text-4xl font-bold text-gray-900">{weeklyRisk.final_weekly_risk?.toFixed(0) || 'N/A'}</p>
-                <p className="text-sm text-secondary">Risk Score (0-100)</p>
+                <p className="text-3xl font-bold text-gray-900">{weeklyRisk.final_weekly_risk?.toFixed(0) || 'N/A'}</p>
+                <p className="text-[11px] text-secondary font-medium">Risk Score (0-100)</p>
               </div>
             </div>
           </Card>
         )}
 
         {/* Weekly Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="text-center">
-            <MessageCircle className="w-8 h-8 text-primary mx-auto mb-2" />
-            <p className="text-sm text-secondary mb-1">Total Sessions</p>
-            <p className="text-3xl font-bold text-gray-900">{sessions.length}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="text-center !p-5">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center mx-auto mb-2.5">
+              <MessageCircle className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-[11px] text-secondary font-medium mb-1">Total Sessions</p>
+            <p className="text-2xl font-bold text-gray-900">{sessions.length}</p>
           </Card>
-          <Card className="text-center">
-            <Activity className="w-8 h-8 text-green-500 mx-auto mb-2" />
-            <p className="text-sm text-secondary mb-1">Active Days</p>
-            <p className="text-3xl font-bold text-gray-900">{sortedDays.length}/7</p>
+          <Card className="text-center !p-5">
+            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center mx-auto mb-2.5">
+              <Activity className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-[11px] text-secondary font-medium mb-1">Active Days</p>
+            <p className="text-2xl font-bold text-gray-900">{sortedDays.length}/7</p>
           </Card>
-          <Card className="text-center">
-            <Clock className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-            <p className="text-sm text-secondary mb-1">Avg Sessions/Day</p>
-            <p className="text-3xl font-bold text-gray-900">
+          <Card className="text-center !p-5">
+            <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-400 rounded-xl flex items-center justify-center mx-auto mb-2.5">
+              <Clock className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-[11px] text-secondary font-medium mb-1">Avg Sessions/Day</p>
+            <p className="text-2xl font-bold text-gray-900">
               {sortedDays.length > 0 ? (sessions.length / sortedDays.length).toFixed(1) : '0'}
             </p>
           </Card>
-          <Card className="text-center">
-            <FileText className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-            <p className="text-sm text-secondary mb-1">Total Messages</p>
-            <p className="text-3xl font-bold text-gray-900">
+          <Card className="text-center !p-5">
+            <div className="w-9 h-9 bg-gradient-to-br from-pink-500 to-rose-400 rounded-xl flex items-center justify-center mx-auto mb-2.5">
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-[11px] text-secondary font-medium mb-1">Total Messages</p>
+            <p className="text-2xl font-bold text-gray-900">
               {sessions.reduce((sum, s) => sum + (s.message_count || 0), 0)}
             </p>
           </Card>
@@ -515,107 +533,113 @@ const ChatModule = () => {
 
         {/* Daily Sessions */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-deepBlue">Daily Sessions</h2>
-          
+          <h2 className="text-lg font-semibold text-gray-900">Daily Sessions</h2>
+
           {sortedDays.length === 0 ? (
-            <Card className="text-center py-8">
-              <Info className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No sessions recorded for this week</p>
-              <p className="text-sm text-gray-500 mt-2">Sessions will appear here when the patient uses the chat feature</p>
+            <Card className="text-center py-12">
+              <div className="w-14 h-14 bg-gray-100/80 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Info className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-gray-600 font-medium">No sessions recorded for this week</p>
+              <p className="text-sm text-gray-400 mt-1">Sessions will appear here when the patient uses the chat feature</p>
             </Card>
           ) : (
             sortedDays.map((date) => {
-              const daySessions = sessionsByDay[date].slice(0, 4); // Limit to 4 sessions per day
+              const daySessions = sessionsByDay[date].slice(0, 4);
               const isExpanded = expandedDays[date];
               const dayRiskScores = daySessions.map(s => s.session_raw_score || 0);
-              const avgDayScore = dayRiskScores.length > 0 
-                ? dayRiskScores.reduce((a, b) => a + b, 0) / dayRiskScores.length 
+              const avgDayScore = dayRiskScores.length > 0
+                ? dayRiskScores.reduce((a, b) => a + b, 0) / dayRiskScores.length
                 : 0;
               const dayRisk = getRiskLevel(avgDayScore);
 
               return (
-                <Card key={date} className="border border-gray-200">
+                <Card key={date}>
                   {/* Day Header - Clickable */}
-                  <div 
-                    className="flex items-center justify-between cursor-pointer p-2 -m-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  <div
+                    className="flex items-center justify-between cursor-pointer group"
                     onClick={() => toggleDay(date)}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-primary/10 rounded-xl">
-                        <Calendar className="w-8 h-8 text-primary" />
+                      <div className="p-2.5 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl">
+                        <Calendar className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">{getDayName(date)}</h3>
-                        <p className="text-sm text-secondary">{formatDate(date)} • {daySessions.length} session{daySessions.length !== 1 ? 's' : ''}</p>
+                        <h3 className="text-base font-semibold text-gray-900">{getDayName(date)}</h3>
+                        <p className="text-xs text-secondary mt-0.5">{formatDate(date)} · {daySessions.length} session{daySessions.length !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${getRiskColorClass(dayRisk.color)}`}>
-                        {dayRisk.level} Risk
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getRiskBadgeClass(dayRisk.color)}`}>
+                        {dayRisk.level}
+                      </span>
+                      <div className="p-1 rounded-lg group-hover:bg-gray-100/60 transition-colors">
+                        {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                       </div>
-                      {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
                     </div>
                   </div>
 
                   {/* Expanded Day View - Sessions */}
                   {isExpanded && (
-                    <div className="mt-4 space-y-4 border-t pt-4">
+                    <div className="mt-5 space-y-3 pt-5 border-t border-gray-100/80">
                       {daySessions.map((session, idx) => {
                         const sessionRisk = getRiskLevel(session.session_raw_score || 0);
                         const isSessionExpanded = expandedSessions[session.session_id];
 
                         return (
-                          <div key={session.session_id} className={`p-4 rounded-lg border ${getRiskColorClass(sessionRisk.color)}`}>
+                          <div key={session.session_id} className={`p-4 rounded-xl border ${getRiskColorClass(sessionRisk.color)} backdrop-blur-sm`}>
                             {/* Session Header */}
-                            <div 
+                            <div
                               className="flex items-center justify-between cursor-pointer"
                               onClick={() => toggleSession(session.session_id)}
                             >
                               <div>
-                                <h4 className="font-semibold text-gray-900">
+                                <h4 className="font-semibold text-sm text-gray-900">
                                   Session {idx + 1}: {getTimeWindowName(session.time_window)}
                                 </h4>
-                                <p className="text-sm text-gray-600">
-                                  {session.message_count || 0} messages • Score: {session.session_raw_score || 0}/36
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  {session.message_count || 0} messages · Score: {session.session_raw_score || 0}/36
                                 </p>
                               </div>
                               <div className="flex items-center space-x-3">
                                 <div className="text-right">
-                                  <p className="font-bold text-lg">{sessionRisk.level}</p>
-                                  <p className="text-xs text-gray-600">{sessionRisk.description}</p>
+                                  <p className="font-bold text-sm">{sessionRisk.level}</p>
+                                  <p className="text-[10px] text-gray-500">{sessionRisk.description}</p>
                                 </div>
-                                {isSessionExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                {isSessionExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                               </div>
                             </div>
 
                             {/* Expanded Session - Parameter Details */}
                             {isSessionExpanded && (
-                              <div className="mt-4 pt-4 border-t border-gray-200">
-                                <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
-                                  <Info className="w-4 h-4 mr-2" />
-                                  Detailed Analysis (What This Means)
+                              <div className="mt-4 pt-4 border-t border-gray-200/50 animate-fade-in">
+                                <h5 className="font-semibold text-xs text-gray-700 mb-3 flex items-center uppercase tracking-wider">
+                                  <Info className="w-3.5 h-3.5 mr-1.5" />
+                                  Detailed Analysis
                                 </h5>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
                                   {Object.entries(PARAMETER_EXPLANATIONS).map(([key, param]) => {
                                     const score = session[key] ?? 0;
                                     const IconComponent = param.IconComponent;
                                     return (
-                                      <div 
-                                        key={key} 
-                                        className={`p-3 rounded-lg ${getParameterScoreColor(score)}`}
+                                      <div
+                                        key={key}
+                                        className={`p-3 rounded-xl border ${getParameterScoreColor(score)}`}
                                       >
-                                        <div className="flex items-center justify-between mb-1">
-                                          <IconComponent className="w-5 h-5 text-gray-600" />
-                                          <span className={`text-xs px-2 py-0.5 rounded-full ${getParameterScoreColor(score)}`}>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                          <div className="flex items-center space-x-2">
+                                            <div className={`w-1.5 h-1.5 rounded-full ${getParameterDotColor(score)}`}></div>
+                                            <span className="text-xs font-semibold">{param.name}</span>
+                                          </div>
+                                          <span className="text-[10px] font-medium opacity-70">
                                             {getParameterScoreLabel(score)}
                                           </span>
                                         </div>
-                                        <h6 className="font-semibold text-sm">{param.name}</h6>
-                                        <p className="text-xs text-gray-600 mt-1">{param.simple}</p>
+                                        <p className="text-[11px] text-gray-500 leading-relaxed">{param.simple}</p>
                                         {score >= 2 && (
-                                          <div className="mt-2 flex items-start space-x-1">
+                                          <div className="mt-2 flex items-start space-x-1.5">
                                             <AlertTriangle className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" />
-                                            <p className="text-xs text-orange-700">{param.description}</p>
+                                            <p className="text-[10px] text-orange-600 leading-relaxed">{param.description}</p>
                                           </div>
                                         )}
                                       </div>
@@ -624,18 +648,17 @@ const ChatModule = () => {
                                 </div>
 
                                 {/* Session Summary */}
-                                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                                  <h6 className="font-semibold text-gray-800 mb-2">Session Summary</h6>
-                                  <div className="flex items-start space-x-2">
+                                <div className="mt-4 p-3.5 bg-white/50 rounded-xl border border-white/60">
+                                  <div className="flex items-start space-x-2.5">
                                     {sessionRisk.level === 'Low' ? (
-                                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                                      <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5" />
                                     ) : (
-                                      <AlertTriangle className="w-5 h-5 text-orange-500 mt-0.5" />
+                                      <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5" />
                                     )}
                                     <div>
-                                      <p className="text-sm text-gray-700">{sessionRisk.description}</p>
-                                      <p className="text-xs text-gray-500 mt-1">
-                                        {sessionRisk.level === 'Low' 
+                                      <p className="text-sm font-medium text-gray-800">{sessionRisk.description}</p>
+                                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                        {sessionRisk.level === 'Low'
                                           ? 'The conversation showed normal patterns. Continue encouraging regular communication.'
                                           : 'Some patterns were noticed that may need attention. Continue monitoring and note any changes.'}
                                       </p>
@@ -649,7 +672,7 @@ const ChatModule = () => {
                       })}
 
                       {sessionsByDay[date].length > 4 && (
-                        <p className="text-sm text-secondary text-center">
+                        <p className="text-xs text-secondary text-center pt-1">
                           Showing 4 of {sessionsByDay[date].length} sessions
                         </p>
                       )}
@@ -662,19 +685,33 @@ const ChatModule = () => {
         </div>
 
         {/* Help Section */}
-        <Card className="bg-blue-50 border border-blue-200">
+        <Card className="!bg-gradient-to-br !from-blue-50/60 !to-indigo-50/40 !border-blue-100/50">
           <div className="flex items-start space-x-3">
-            <Info className="w-6 h-6 text-blue-500 mt-1" />
+            <div className="p-2 bg-blue-100/60 rounded-xl flex-shrink-0">
+              <Info className="w-4 h-4 text-blue-600" />
+            </div>
             <div>
-              <h3 className="font-semibold text-blue-800 mb-2">Understanding the Report</h3>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• <strong>Low Risk (Green):</strong> Normal conversation patterns</li>
-                <li>• <strong>Mild Risk (Yellow):</strong> Minor concerns - keep monitoring</li>
-                <li>• <strong>Moderate Risk (Orange):</strong> Notable patterns - discuss with doctor</li>
-                <li>• <strong>High/Critical Risk (Red):</strong> Significant concerns - seek medical advice</li>
-              </ul>
-              <p className="text-xs text-blue-600 mt-3">
-                💡 Tip: Click on any day card to see individual sessions, then click on a session to see detailed analysis.
+              <h3 className="font-semibold text-sm text-blue-900 mb-2">Understanding the Report</h3>
+              <div className="flex flex-wrap gap-3 mb-3">
+                <span className="flex items-center space-x-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span className="text-gray-600">Low Risk</span>
+                </span>
+                <span className="flex items-center space-x-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                  <span className="text-gray-600">Mild Risk</span>
+                </span>
+                <span className="flex items-center space-x-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                  <span className="text-gray-600">Moderate Risk</span>
+                </span>
+                <span className="flex items-center space-x-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                  <span className="text-gray-600">High/Critical</span>
+                </span>
+              </div>
+              <p className="text-xs text-blue-600/80">
+                Click on any day card to see individual sessions, then click on a session to see detailed analysis.
               </p>
             </div>
           </div>
