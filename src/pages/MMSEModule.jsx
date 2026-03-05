@@ -374,9 +374,9 @@ const MMSEModule = () => {
     doc.setFillColor(30, 58, 138);
     doc.rect(0, 0, pageWidth, 45, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('LONGITUDINAL PROGRESS REPORT', 20, 25);
+    doc.text('PATIENT PROGRESS SUMMARY', 20, 25);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -940,10 +940,10 @@ const MMSEModule = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={`mt-8 p-6 rounded-3xl border-2 overflow-hidden relative ${selectedAssessment.total_score >= 24
-                            ? "bg-emerald-50/50 border-emerald-100"
-                            : selectedAssessment.total_score >= 18
-                              ? "bg-amber-50/50 border-amber-100"
-                              : "bg-rose-50/50 border-rose-100"
+                          ? "bg-emerald-50/50 border-emerald-100"
+                          : selectedAssessment.total_score >= 18
+                            ? "bg-amber-50/50 border-amber-100"
+                            : "bg-rose-50/50 border-rose-100"
                           }`}
                       >
                         {/* Abstract Background Icon */}
@@ -960,10 +960,10 @@ const MMSEModule = () => {
                               Clinical Caregiver Feedback
                             </h4>
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${selectedAssessment.total_score >= 24
-                                ? "bg-emerald-500 text-white"
-                                : selectedAssessment.total_score >= 18
-                                  ? "bg-amber-500 text-white"
-                                  : "bg-rose-500 text-white animate-pulse"
+                              ? "bg-emerald-500 text-white"
+                              : selectedAssessment.total_score >= 18
+                                ? "bg-amber-500 text-white"
+                                : "bg-rose-500 text-white animate-pulse"
                               }`}>
                               {selectedAssessment.total_score >= 24 ? "Normal Range" : selectedAssessment.total_score >= 18 ? "Mild Monitoring" : "Immediate Action"}
                             </span>
