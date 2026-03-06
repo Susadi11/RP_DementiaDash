@@ -462,6 +462,22 @@ export const getWeeklyReport = async (patientId, endDate = null) => {
 };
 
 /**
+ * Get the full weekly reminder report from the reminders service
+ * @param {string} userId - Patient user ID
+ */
+export const getReminderWeeklyReport = async (userId) => {
+  const response = await fetch(`${API_BASE_URL}/api/reminders/reports/weekly/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
  * Get caregiver alerts for a patient
  * @param {string} patientId - Patient user ID
  * @param {Object} filters - Optional filters { priority, resolved, days }

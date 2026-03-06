@@ -10,8 +10,10 @@ import {
   getActivityCompletion,
   getMedicationSchedule,
   getBehaviorAnalysis,
-  getWeeklyReport
+  getWeeklyReport,
+  getReminderWeeklyReport
 } from '../services/api';
+import generateWeeklyPDF from '../utils/generateWeeklyPDF';
 
 const ReminderModule = () => {
   const [patients, setPatients] = useState([]);
@@ -71,17 +73,20 @@ const ReminderModule = () => {
 
   const handleDownloadReport = async () => {
     if (!patient) return;
+    const name = patient.full_name || `Patient-${patient.user_id}`;
     try {
-      const reportData = await getWeeklyReport(patient.user_id);
-      if (reportData.success) {
-        const blob = new Blob([JSON.stringify(reportData.report, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `weekly-report-${patient.user_id}-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+      // Try the reminders endpoint first (has full data), fall back to caregiver endpoint
+      try {
+        const data = await getReminderWeeklyReport(patient.user_id);
+        const report = data.report || data;
+        generateWeeklyPDF(report, name);
+        return;
+      } catch {
+        // fall through to caregiver endpoint
       }
+      const reportData = await getWeeklyReport(patient.user_id);
+      const report = reportData.report || reportData;
+      generateWeeklyPDF(report, name);
     } catch (err) {
       alert('Failed to download report: ' + err.message);
     }

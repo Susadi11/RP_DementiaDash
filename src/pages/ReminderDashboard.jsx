@@ -31,12 +31,14 @@ import {
   resolveAlert,
   getLinkedPatientsDetails,
   getWeeklyReport,
+  getReminderWeeklyReport,
   getAllRemindersGrouped,
   getSnoozedReminders,
   getAdherenceRiskScore,
   getPatientReminders,
   getUserRemindersAll
 } from '../services/api';
+import generateWeeklyPDF from '../utils/generateWeeklyPDF';
 
 /**
  * Caregiver Dashboard Page
@@ -194,17 +196,20 @@ const ReminderDashboard = () => {
 
   const handleDownloadReport = async () => {
     try {
-      const reportData = await getWeeklyReport(selectedPatient);
-      if (reportData.success) {
-        // Convert to JSON and download
-        const blob = new Blob([JSON.stringify(reportData.report, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `weekly-report-${selectedPatient}-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+      const name = currentPatient?.full_name || `Patient-${selectedPatient}`;
+      // Try the reminders endpoint first (has full data), fall back to caregiver endpoint
+      try {
+        const data = await getReminderWeeklyReport(selectedPatient);
+        // Response may be the report directly or nested under .report
+        const report = data.report || data;
+        generateWeeklyPDF(report, name);
+        return;
+      } catch {
+        // fall through to caregiver endpoint
       }
+      const reportData = await getWeeklyReport(selectedPatient);
+      const report = reportData.report || reportData;
+      generateWeeklyPDF(report, name);
     } catch (err) {
       console.error('Failed to download report:', err);
     }
