@@ -6,9 +6,9 @@ import Dashboard from './pages/Dashboard';
 import ChatModule from './pages/ChatModule';
 import MMSEModule from './pages/MMSEModule';
 import GameModule from './pages/GameModule';
-import ReminderModule from './pages/ReminderModule';
 import ReminderDashboard from './pages/ReminderDashboard';
 import Settings from './pages/Settings';
+import FinalReport from './pages/FinalReport';
 
 function App() {
   return (
@@ -22,9 +22,9 @@ function App() {
         <Route path="/chat" element={<ChatModule />} />
         <Route path="/mmse" element={<MMSEModule />} />
         <Route path="/game" element={<GameModule />} />
-        <Route path="/reminder" element={<ReminderModule />} />
         <Route path="/reminder-dashboard" element={<ReminderDashboard />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/users/:userId/final-report" element={<FinalReport />} />
       </Routes>
     </Router>
   );

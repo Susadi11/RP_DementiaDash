@@ -1,4 +1,4 @@
-import { Home, MessageSquare, Brain, Gamepad2, Bell, Settings, User, Activity } from 'lucide-react';
+import { Home, MessageSquare, Brain, Gamepad2, Settings, User, Activity } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Sidebar = () => {
@@ -9,8 +9,7 @@ const Sidebar = () => {
     { name: 'Chat', icon: MessageSquare, path: '/chat' },
     { name: 'MMSE', icon: Brain, path: '/mmse' },
     { name: 'Game', icon: Gamepad2, path: '/game' },
-    { name: 'Reminder', icon: Bell, path: '/reminder' },
-    { name: 'Medication', icon: Activity, path: '/reminder-dashboard' },
+    { name: 'Reminder', icon: Activity, path: '/reminder-dashboard' },
     { name: 'Profile', icon: User, path: '/profile' },
     { name: 'Settings', icon: Settings, path: '/settings' }
   ];

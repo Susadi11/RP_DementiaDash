@@ -268,7 +268,6 @@ const ChatModule = () => {
     }));
   };
 
-  // Generate PDF Report (unchanged logic)
   const generateWeeklyPDFReport = () => {
     if (!patient || sessions.length === 0) {
       alert('No data available to generate report');
@@ -277,124 +276,215 @@ const ChatModule = () => {
 
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
-    let yPos = 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 0;
 
-    doc.setFontSize(20);
-    doc.setTextColor(0, 51, 102);
-    doc.text('Weekly Behavior Report', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
+    const checkPage = (needed = 15) => {
+      if (y + needed > pageHeight - 22) {
+        doc.addPage();
+        y = margin;
+      }
+    };
 
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text(`Patient: ${patient.full_name || 'Patient'}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 7;
-    doc.text(`Week Starting: ${formatDate(selectedWeek)}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 7;
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 15;
+    const drawHRule = (weight = 0.3) => {
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(weight);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 5;
+    };
 
-    doc.setFontSize(14);
-    doc.setTextColor(0, 51, 102);
-    doc.text('Weekly Summary', 20, yPos);
-    yPos += 8;
+    const sectionHeading = (text) => {
+      checkPage(14);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text(text.toUpperCase(), margin, y);
+      y += 3;
+      drawHRule(0.5);
+    };
 
-    doc.setFontSize(10);
-    doc.setTextColor(60);
-    doc.text(`Total Sessions: ${sessions.length}`, 20, yPos);
-    yPos += 6;
+    const addFooters = () => {
+      const total = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= total; i++) {
+        doc.setPage(i);
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(130, 130, 130);
+        doc.text('Smart Dementia Risk Monitoring & Cognitive Support System  |  Confidential', margin, pageHeight - 9);
+        doc.text(`Page ${i} of ${total}`, pageWidth - margin, pageHeight - 9, { align: 'right' });
+      }
+    };
 
+    // ── HEADER ──────────────────────────────────────────────────────────────
+    y = margin;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(20, 20, 20);
+    doc.text('Weekly Behaviour Report', margin, y);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Smart Dementia Risk Monitoring & Cognitive Support System', pageWidth - margin, y, { align: 'right' });
+
+    y += 5;
+    drawHRule(0.8);
+
+    // ── REPORT META ──────────────────────────────────────────────────────────
+    const weekEnd = new Date(new Date(selectedWeek).getTime() + 6 * 24 * 60 * 60 * 1000);
+    const metaRows = [
+      ['Patient Name',  patient.full_name || 'N/A'],
+      ['Patient Age',   patient.age ? `${patient.age} years` : 'N/A'],
+      ['Patient ID',    patient.user_id || 'N/A'],
+      ['Report Period', `${formatDate(selectedWeek)} – ${formatDate(weekEnd.toISOString())}`],
+      ['Generated On',  new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })],
+    ];
+    doc.setFontSize(9);
+    metaRows.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(50, 50, 50);
+      doc.text(label + ':', margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(30, 30, 30);
+      doc.text(value, margin + 38, y);
+      y += 6;
+    });
+    y += 3;
+
+    // ── WEEKLY SUMMARY ───────────────────────────────────────────────────────
+    sectionHeading('Weekly Summary');
+
+    const summaryRows = [
+      ['Total Chat Sessions', String(sessions.length)],
+      ['Active Days', `${sortedDays.length} of 7`],
+      ['Total Messages', String(sessions.reduce((s, x) => s + (x.message_count || 0), 0))],
+      ['Avg Sessions / Day', sortedDays.length > 0 ? (sessions.length / sortedDays.length).toFixed(1) : '0'],
+    ];
     if (weeklyRisk) {
-      doc.text(`Weekly Risk Level: ${weeklyRisk.risk_level || 'N/A'}`, 20, yPos);
-      yPos += 6;
-      doc.text(`Weekly Risk Score: ${weeklyRisk.final_weekly_risk?.toFixed(1) || 'N/A'}/100`, 20, yPos);
-      yPos += 6;
+      summaryRows.push(['Weekly Risk Level', weeklyRisk.risk_level || 'N/A']);
+      summaryRows.push(['Weekly Risk Score', `${weeklyRisk.final_weekly_risk?.toFixed(1) || 'N/A'} / 100`]);
+      if (weeklyRisk.interpretation?.description) {
+        summaryRows.push(['Risk Summary', weeklyRisk.interpretation.description]);
+      }
     }
-    yPos += 10;
 
-    doc.setFontSize(14);
-    doc.setTextColor(0, 51, 102);
-    doc.text('Daily Session Details', 20, yPos);
-    yPos += 10;
+    doc.setFontSize(9);
+    summaryRows.forEach(([label, value]) => {
+      checkPage(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(60, 60, 60);
+      doc.text(label + ':', margin + 2, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(20, 20, 20);
+      const lines = doc.splitTextToSize(value, contentWidth - 55);
+      doc.text(lines, margin + 55, y);
+      y += lines.length * 5.5 + 1;
+    });
+    y += 4;
+
+    // ── DAILY SESSION DETAILS ────────────────────────────────────────────────
+    sectionHeading('Daily Session Details');
 
     sortedDays.forEach((date) => {
       const daySessions = sessionsByDay[date].slice(0, 4);
+      const avgScore = daySessions.reduce((a, s) => a + (s.session_raw_score || 0), 0) / (daySessions.length || 1);
+      const dayRisk = getRiskLevel(avgScore);
 
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFontSize(12);
-      doc.setTextColor(0, 51, 102);
-      doc.text(`${getDayName(date)} - ${formatDate(date)}`, 20, yPos);
-      yPos += 8;
+      checkPage(16);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(20, 20, 20);
+      doc.text(`${getDayName(date)}, ${formatDate(date)}`, margin + 2, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Daily Risk: ${dayRisk.level}   |   Sessions: ${daySessions.length}`, pageWidth - margin, y, { align: 'right' });
+      y += 4;
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.2);
+      doc.line(margin + 2, y, pageWidth - margin, y);
+      y += 5;
 
       daySessions.forEach((session, idx) => {
-        const risk = getRiskLevel(session.session_raw_score || 0);
+        const sRisk = getRiskLevel(session.session_raw_score || 0);
+        checkPage(18);
 
-        doc.setFontSize(10);
-        doc.setTextColor(60);
-        doc.text(`Session ${idx + 1} (${getTimeWindowName(session.time_window).replace(/[^\w\s()-]/g, '')})`, 25, yPos);
-        yPos += 5;
-        doc.text(`Risk: ${risk.level} - ${risk.description}`, 30, yPos);
-        yPos += 5;
-        doc.text(`Score: ${session.session_raw_score || 0}/36`, 30, yPos);
-        yPos += 8;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 30, 30);
+        doc.text(`Session ${idx + 1}  —  ${getTimeWindowName(session.time_window).replace(/[^\w\s()-]/g, '')}`, margin + 6, y);
+        y += 5;
 
-        const concerningParams = Object.entries(session)
-          .filter(([key, value]) => key.startsWith('p') && key.includes('_') && value >= 2)
-          .slice(0, 3);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(70, 70, 70);
+        doc.text(`Score: ${session.session_raw_score || 0}/36   |   Messages: ${session.message_count || 0}   |   Risk: ${sRisk.level} — ${sRisk.description}`, margin + 6, y);
+        y += 5;
 
-        if (concerningParams.length > 0) {
-          doc.setTextColor(180, 0, 0);
-          doc.text('Areas of Concern:', 30, yPos);
-          yPos += 5;
-          concerningParams.forEach(([key]) => {
-            const param = PARAMETER_EXPLANATIONS[key];
-            if (param) {
-              doc.text(`- ${param.name}: ${param.simple}`, 35, yPos);
-              yPos += 5;
-            }
+        const concerns = Object.entries(PARAMETER_EXPLANATIONS)
+          .filter(([key]) => (session[key] ?? 0) >= 2);
+
+        if (concerns.length > 0) {
+          checkPage(6 + concerns.length * 5);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(80, 40, 40);
+          doc.text('Parameters of concern:', margin + 6, y);
+          y += 5;
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(60, 30, 30);
+          concerns.slice(0, 5).forEach(([, param]) => {
+            const lines = doc.splitTextToSize(`- ${param.name}: ${param.simple}`, contentWidth - 16);
+            doc.text(lines, margin + 10, y);
+            y += lines.length * 5;
           });
-          yPos += 3;
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(40, 80, 40);
+          doc.text('No significant concerns detected in this session.', margin + 6, y);
+          y += 5;
         }
+        y += 4;
       });
-      yPos += 5;
+      y += 3;
     });
 
-    if (yPos > 230) {
-      doc.addPage();
-      yPos = 20;
-    }
-
-    doc.setFontSize(14);
-    doc.setTextColor(0, 51, 102);
-    doc.text('Recommendations', 20, yPos);
-    yPos += 10;
-
-    doc.setFontSize(10);
-    doc.setTextColor(60);
+    // ── RECOMMENDATIONS ──────────────────────────────────────────────────────
+    checkPage(30);
+    sectionHeading('Recommendations');
 
     const recommendations = weeklyRisk?.interpretation?.recommendations || [
-      'Continue regular monitoring',
-      'Maintain consistent daily routines',
-      'Encourage social interaction',
-      'Consult healthcare provider if concerns persist'
+      'Continue regular monitoring of daily conversations.',
+      'Maintain consistent daily routines and schedules.',
+      'Encourage social interaction and engagement with family or caregivers.',
+      'Consult a qualified healthcare provider if concerns persist or worsen.',
     ];
 
-    recommendations.forEach(rec => {
-      doc.text(`- ${rec}`, 25, yPos);
-      yPos += 6;
+    doc.setFontSize(9);
+    recommendations.forEach((rec, i) => {
+      checkPage(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(30, 30, 30);
+      const lines = doc.splitTextToSize(`${i + 1}.  ${rec}`, contentWidth - 4);
+      doc.text(lines, margin + 2, y);
+      y += lines.length * 5.5 + 2;
     });
 
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(150);
-      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 30, doc.internal.pageSize.getHeight() - 10);
-      doc.text('Dementia Care Dashboard - Confidential', 20, doc.internal.pageSize.getHeight() - 10);
-    }
+    y += 6;
+    checkPage(14);
+    drawHRule(0.3);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(120, 120, 120);
+    const disclaimer = 'This report is generated by an AI-assisted research prototype and is intended to support, not replace, professional clinical judgment. Always consult a qualified healthcare provider for medical decisions.';
+    const dLines = doc.splitTextToSize(disclaimer, contentWidth);
+    doc.text(dLines, margin, y);
+
+    addFooters();
 
     const fileName = `Weekly_Report_${patient.full_name?.replace(/\s+/g, '_') || 'Patient'}_${selectedWeek}.pdf`;
     doc.save(fileName);

@@ -328,55 +328,72 @@ const ReminderDashboard = () => {
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <>
-            {/* Stats Grid */}
-            {dashboard?.reminder_overview && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                  title="Compliance Rate"
-                  value={`${dashboard.reminder_overview.compliance_rate}%`}
-                  icon={TrendingUp}
-                  trend={dashboard.reminder_overview.week_change?.startsWith('+') ? 'up' : 'down'}
-                  trendValue={dashboard.reminder_overview.week_change}
-                  gradient={true}
-                />
-                <Card className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-gray-600 text-sm font-medium mb-2">Completed</p>
-                      <p className="text-4xl font-bold text-gray-900 mb-2">{dashboard.reminder_overview.completed}</p>
-                      <p className="text-sm text-gray-500">of {dashboard.reminder_overview.total} total</p>
+            {/* Stats Grid — prefer dashboard.reminder_overview; fall back to groupedReminders / allReminders */}
+            {(() => {
+              const ov = dashboard?.reminder_overview || {};
+              const gs = groupedReminders?.summary || {};
+              const rawCount = allReminders?.length || 0;
+
+              const total     = ov.total     || gs.total     || rawCount;
+              const completed = ov.completed || gs.completed || 0;
+              const missed    = ov.missed    || gs.missed    || 0;
+              const pending   = ov.pending   || gs.active    || 0;
+              const rate      = total > 0
+                ? (ov.compliance_rate || gs.compliance_rate || Math.round((completed / total) * 100))
+                : 0;
+              const weekChange = ov.week_change || null;
+
+              if (total === 0 && rawCount === 0) return null;   // truly no data
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <StatCard
+                    title="Compliance Rate"
+                    value={`${rate}%`}
+                    icon={TrendingUp}
+                    trend={weekChange?.startsWith('+') ? 'up' : 'down'}
+                    trendValue={weekChange}
+                    gradient={true}
+                  />
+                  <Card className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-gray-600 text-sm font-medium mb-2">Completed</p>
+                        <p className="text-4xl font-bold text-gray-900 mb-2">{completed}</p>
+                        <p className="text-sm text-gray-500">of {total} total</p>
+                      </div>
+                      <div className="bg-blue-500 p-3 rounded-xl">
+                        <Activity className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div className="bg-blue-500 p-3 rounded-xl">
-                      <Activity className="w-6 h-6 text-white" />
+                  </Card>
+                  <Card className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-gray-600 text-sm font-medium mb-2">Missed</p>
+                        <p className="text-4xl font-bold text-gray-900 mb-2">{missed}</p>
+                        <p className="text-sm text-gray-500">this week</p>
+                      </div>
+                      <div className="bg-red-500 p-3 rounded-xl">
+                        <Bell className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                  </div>
-                </Card>
-                <Card className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-gray-600 text-sm font-medium mb-2">Missed</p>
-                      <p className="text-4xl font-bold text-gray-900 mb-2">{dashboard.reminder_overview.missed}</p>
-                      <p className="text-sm text-gray-500">this week</p>
+                  </Card>
+                  <Card className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-gray-600 text-sm font-medium mb-2">Pending</p>
+                        <p className="text-4xl font-bold text-gray-900 mb-2">{pending}</p>
+                        <p className="text-sm text-gray-500">upcoming</p>
+                      </div>
+                      <div className="bg-yellow-500 p-3 rounded-xl">
+                        <Calendar className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                    <div className="bg-red-500 p-3 rounded-xl">
-                      <Bell className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-gray-600 text-sm font-medium mb-2">Pending</p>
-                      <p className="text-4xl font-bold text-gray-900 mb-2">{dashboard.reminder_overview.pending}</p>
-                      <p className="text-sm text-gray-500">upcoming</p>
-                    </div>
-                    <div className="bg-yellow-500 p-3 rounded-xl">
-                      <Calendar className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            )}
+                  </Card>
+                </div>
+              );
+            })()}
 
             {/* Cognitive Risk & Recommendations */}
             {dashboard?.cognitive_risk && (

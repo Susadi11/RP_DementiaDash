@@ -607,3 +607,40 @@ export const getPatientAssessmentsMMSE = async (userId) => {
 
   return handleResponse(response);
 };
+
+// ============================================
+// GAME API ENDPOINTS
+// ============================================
+
+/**
+ * Get game statistics for a patient
+ * @param {string} userId - Patient User ID
+ */
+export const getGameStats = async (userId) => {
+  const response = await fetch(`${API_BASE_URL}/game/stats/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get game session history for a patient
+ * @param {string} userId - Patient User ID
+ * @param {number} limit - Max sessions to return (default: 20)
+ */
+export const getGameHistory = async (userId, limit = 20) => {
+  const response = await fetch(`${API_BASE_URL}/game/history/${userId}?limit=${limit}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
