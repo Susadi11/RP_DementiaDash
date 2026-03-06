@@ -11,7 +11,7 @@ import Button from '../components/common/Button';
 import Avatar from '../components/common/Avatar';
 import { getLinkedPatientsDetails, getPatientProfilePhotoUrl } from '../services/api';
 import {
-  fetchWeeklyReportData, getOverallRating, getComponentRating,
+  fetchWeeklyReportData, getComponentRating,
   friendlyRisk, friendlyMmseStatus, friendlyTrend, FRIENDLY_PARAM_NAMES
 } from '../services/weeklyReportService';
 import jsPDF from 'jspdf';
@@ -21,7 +21,6 @@ const Dashboard = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reportLoading, setReportLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [pdfGenerating, setPdfGenerating] = useState(false);
 
@@ -30,7 +29,7 @@ const Dashboard = () => {
       try {
         const data = await getLinkedPatientsDetails();
         if (data.success && data.patients) setPatients(data.patients);
-      } catch (err) { console.error(err); setError(err.message); }
+      } catch (err) { console.error(err); }
       finally { setLoading(false); }
     };
     fetchPatients();
@@ -79,227 +78,269 @@ const Dashboard = () => {
     );
   };
 
-  // ══════════════════════════════════════════════════════════════════════
-  //  PDF — Simple, plain-language report anyone can understand
-  // ══════════════════════════════════════════════════════════════════════
+  // ── PDF generation ────────────────────────────────────────────────────
   const generatePDF = () => {
     if (!reportData || !user) return;
     setPdfGenerating(true);
-
     try {
-      const doc = new jsPDF();
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
       const pw = doc.internal.pageSize.getWidth();
       const ph = doc.internal.pageSize.getHeight();
-      const m = 20;
-      const cw = pw - m * 2;
-      let y = 0;
+      const M = 20, CW = pw - M * 2;
+      let y = M;
 
-      const checkPage = (n = 14) => { if (y + n > ph - 20) { doc.addPage(); y = m; } };
-      const hr = () => { doc.setDrawColor(200); doc.setLineWidth(0.3); doc.line(m, y, pw - m, y); y += 5; };
-      const heading = (t) => { checkPage(16); y += 4; doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30); doc.text(t, m, y); y += 4; hr(); };
-      const label = (l, v) => {
-        checkPage(7); doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(80, 80, 80);
-        doc.text(l, m + 2, y); doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 30, 30);
-        const lines = doc.splitTextToSize(String(v ?? '—'), cw - 65);
-        doc.text(lines, m + 62, y); y += lines.length * 5.5 + 2;
+      const G = { navy:[15,40,100], blue:[37,99,235], green:[22,163,74], lgreen:[220,252,231],
+                  yellow:[202,138,4], lyellow:[254,249,195], red:[220,38,38], lred:[254,226,226],
+                  orange:[234,88,12], lgray:[243,244,246], gray:[156,163,175], dark:[30,30,30], white:[255,255,255] };
+
+      const np  = ()    => { doc.addPage(); y = M; };
+      const sp  = (h)   => { if (y + h > ph - 16) np(); };
+      const fc  = (c)   => doc.setFillColor(...c);
+      const tc  = (c)   => doc.setTextColor(...c);
+      const row = (k,v) => {
+        sp(7); doc.setFont('helvetica','bold'); doc.setFontSize(9); tc(G.gray);
+        doc.text(k, M, y); doc.setFont('helvetica','normal'); tc(G.dark);
+        doc.text(String(v ?? '—'), M + CW * 0.45, y); y += 6;
       };
-      const bullet = (t, color = [70, 70, 70]) => {
-        checkPage(7); doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...color);
-        const lines = doc.splitTextToSize(`•  ${t}`, cw - 8);
-        doc.text(lines, m + 4, y); y += lines.length * 5 + 2;
+      const bullet = (t, col = G.dark) => {
+        sp(7); doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(col);
+        doc.splitTextToSize(`• ${t}`, CW - 6).forEach(l => { sp(6); doc.text(l, M + 3, y); y += 5.5; });
       };
-      const para = (t, color = [50, 50, 50]) => {
-        doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...color);
-        doc.splitTextToSize(t, cw - 4).forEach(l => { checkPage(6); doc.text(l, m + 2, y); y += 5; });
-        y += 2;
+      const sec = (title) => {
+        sp(16); y += 8;
+        doc.setDrawColor(...G.blue); doc.setLineWidth(0.4);
+        doc.line(M, y, M + CW, y); y += 5;
+        doc.setFont('helvetica','bold'); doc.setFontSize(11); tc(G.navy);
+        doc.text(title, M, y); y += 7;
+        doc.setDrawColor(220,220,220); doc.setLineWidth(0.2);
+        doc.line(M, y, M + CW, y); y += 5;
+      };
+      const badge = (label, bg, fg, x, bw = 42) => {
+        fc(bg); doc.roundedRect(x, y - 5, bw, 7, 1.5, 1.5, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5); tc(fg);
+        doc.text(label, x + bw / 2, y, { align: 'center' });
+      };
+      const scoreBox = (score, label, sub, x, bw, bh = 22) => {
+        const isNull = score === null;
+        const bg = isNull ? G.lgray : score >= 75 ? G.lgreen : score >= 50 ? G.lyellow : G.lred;
+        const fg = isNull ? G.gray  : score >= 75 ? G.green  : score >= 50 ? G.yellow  : G.red;
+        fc(bg); doc.roundedRect(x, y, bw, bh, 2, 2, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(15); tc(fg);
+        doc.text(isNull ? '—' : `${score}`, x + bw/2, y + 10, { align:'center' });
+        doc.setFontSize(6.5); doc.setFont('helvetica','normal'); tc(fg);
+        doc.text(label, x + bw/2, y + 16, { align:'center' });
+        if (sub) { doc.setFontSize(6); tc(G.gray); doc.text(sub, x + bw/2, y + 20.5, { align:'center' }); }
       };
       const footers = () => {
         const tot = doc.internal.getNumberOfPages();
         for (let i = 1; i <= tot; i++) {
-          doc.setPage(i); doc.setDrawColor(200); doc.setLineWidth(0.2);
-          doc.line(m, ph - 14, pw - m, ph - 14);
-          doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(150);
-          doc.text('Hale — Dementia Care App  |  Confidential', m, ph - 9);
-          doc.text(`Page ${i} of ${tot}`, pw - m, ph - 9, { align: 'right' });
+          doc.setPage(i);
+          doc.setDrawColor(200,200,200); doc.setLineWidth(0.2); doc.line(M, ph-12, pw-M, ph-12);
+          doc.setFont('helvetica','italic'); doc.setFontSize(7); tc(G.gray);
+          doc.text('Hale Dementia Care  |  Confidential  |  Not a substitute for medical advice', M, ph-7);
+          doc.text(`Page ${i} / ${tot}`, pw-M, ph-7, { align:'right' });
         }
       };
 
-      // ── Title ──
-      y = m;
-      doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
-      doc.text('Weekly Health Report', m, y);
-      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(130);
-      doc.text('Hale — Dementia Care App', pw - m, y, { align: 'right' });
-      y += 6; hr();
+      // ── HEADER ──
+      fc(G.navy); doc.rect(0, 0, pw, 32, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(16); tc(G.white);
+      doc.text('Weekly Health Report', M, 14);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); tc([180,210,255]);
+      doc.text('Hale Dementia Care', M, 22);
+      doc.setFontSize(8);
+      doc.text(`${reportData.weekStart}  –  ${reportData.weekEnding}`, pw-M, 14, { align:'right' });
+      doc.text(`Generated: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}`, pw-M, 22, { align:'right' });
+      y = 40;
 
       // ── Patient info ──
-      label('Name', user.name);
-      label('Age', `${user.age} years`);
-      label('Gender', user.gender);
-      if (user.condition && user.condition !== 'Not specified') label('Conditions', user.condition);
-      if (user.allergies.length) label('Allergies', user.allergies.join(', '));
-      if (user.medicines.length) label('Medicines', user.medicines.join(', '));
-      label('Report Week', `${reportData.weekStart} to ${reportData.weekEnding}`);
-      label('Date', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
-      y += 2;
+      doc.setFont('helvetica','bold'); doc.setFontSize(12); tc(G.navy);
+      doc.text(user.name, M, y); y += 6;
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.gray);
+      const meta = [user.age !== 'N/A' && `Age ${user.age}`, user.gender !== 'N/A' && user.gender,
+                    user.condition !== 'Not specified' && user.condition].filter(Boolean).join('  ·  ');
+      doc.text(meta || '—', M, y); y += 5;
+      if (user.allergies.length) { tc(G.red); doc.text(`Allergies: ${user.allergies.join(', ')}`, M, y); y += 5; }
+      if (user.medicines.length) { tc(G.gray); doc.text(`Medicines: ${user.medicines.join(', ')}`, M, y); y += 5; }
+      y += 3;
 
-      // ── Overall Score ──
-      heading('How is your loved one doing?');
+      // ── Score cards ──
+      sec('Overall Health Score');
       const sc = reportData.overallScore;
-      const scoreColor = sc >= 70 ? [16, 185, 129] : sc >= 50 ? [245, 158, 11] : [239, 68, 68];
-
-      // Score line: "55 / 100  —  Fair" all at same readable size
-      doc.setFontSize(28); doc.setFont('helvetica', 'bold'); doc.setTextColor(...scoreColor);
-      const scoreText = `${sc}`;
-      doc.text(scoreText, m, y);
-      const scoreW = doc.getTextWidth(scoreText);
-
-      doc.setFontSize(16); doc.setFont('helvetica', 'normal'); doc.setTextColor(130, 130, 130);
-      doc.text(' / 100', m + scoreW + 2, y);
-      const slashW = doc.getTextWidth(' / 100');
-
-      doc.setFontSize(14); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80);
-      doc.text(`  —  ${reportData.rating.label}`, m + scoreW + slashW + 4, y);
-      y += 12;
-
-      doc.setFontSize(9.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(100);
-      doc.text(`Based on ${reportData.componentsUsed} out of 4 areas with activity this week.`, m + 2, y);
-      y += 8;
-
-      // Score breakdown — plain language
-      const areas = [
-        { name: 'Conversations', score: reportData.chat.score, detail: reportData.chat.hasData ? `${reportData.chat.totalSessions} chat${reportData.chat.totalSessions !== 1 ? 's' : ''} — ${friendlyRisk(reportData.chat.riskLevel)}` : 'No chats this week' },
-        { name: 'Memory Test', score: reportData.mmse.score, detail: reportData.mmse.hasData ? `Scored ${reportData.mmse.latestScore}/30 — ${friendlyMmseStatus(reportData.mmse.latestScore)}` : 'No test taken' },
-        { name: 'Brain Games', score: reportData.game.score, detail: reportData.game.hasData ? `${reportData.game.totalSessions} session${reportData.game.totalSessions !== 1 ? 's' : ''} — ${friendlyRisk(reportData.game.currentRiskLevel)}` : 'No games played' },
-        { name: 'Medications', score: reportData.reminder.score, detail: reportData.reminder.hasData ? `Taken ${reportData.reminder.complianceRate}% of the time` : 'No data' },
+      const overallLabel = sc >= 85 ? 'Excellent' : sc >= 75 ? 'Good' : sc >= 55 ? 'Fair' : sc >= 40 ? 'Needs Attention' : 'Critical';
+      // Big overall
+      scoreBox(sc, '/100  ' + overallLabel, `${reportData.componentsUsed} of 4 areas`, M, 44, 26);
+      // 4 component cards
+      const comps = [
+        { name:'Conversations', score:reportData.chat.score,     sub: reportData.chat.hasData     ? `${reportData.chat.totalSessions} session${reportData.chat.totalSessions!==1?'s':''}` : 'No data' },
+        { name:'Memory Test',   score:reportData.mmse.score,     sub: reportData.mmse.hasData     ? `${reportData.mmse.latestScore}/30` : 'No data' },
+        { name:'Brain Games',   score:reportData.game.score,     sub: reportData.game.hasData     ? friendlyRisk(reportData.game.currentRiskLevel) : 'No data' },
+        { name:'Medications',   score:reportData.reminder.score, sub: reportData.reminder.hasData ? `${reportData.reminder.complianceRate}% taken` : 'No data' },
       ];
-      areas.forEach(a => {
-        checkPage(8); doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold'); doc.setTextColor(50, 50, 50);
-        doc.text(`${a.name}:`, m + 4, y);
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80);
-        doc.text(`${a.score !== null ? a.score + '/100' : 'No data'}  —  ${a.detail}`, m + 50, y);
-        y += 8;
-      });
-      y += 4;
+      const cw = (CW - 48) / 4 - 2;
+      comps.forEach((c, i) => scoreBox(c.score, c.name, c.sub, M + 48 + i*(cw+2), cw, 26));
+      y += 32;
+      doc.setFont('helvetica','italic'); doc.setFontSize(7.5); tc(G.gray);
+      doc.text('Only areas with activity this week are counted in the overall score.', M, y); y += 8;
 
       // ── 1. Conversations ──
-      heading('Conversations');
+      sec('1.  Conversations (AI Chat Analysis)');
       if (reportData.chat.hasData) {
-        label('Score', `${reportData.chat.score} out of 100`);
-        label('Chats This Week', `${reportData.chat.totalSessions}`);
-        label('Days Active', `${reportData.chat.activeDays} out of 7 days`);
-        label('How It Looks', friendlyRisk(reportData.chat.riskLevel));
-
-        const concerns = Object.entries(reportData.chat.parameterConcerns);
-        if (concerns.length > 0) {
-          y += 2; doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(200, 80, 80);
-          doc.text('Things we noticed:', m + 2, y); y += 7;
-          concerns.forEach(([key]) => {
-            const friendlyName = FRIENDLY_PARAM_NAMES[key] || key.replace(/^p\d+_/, '').replace(/_/g, ' ');
-            bullet(friendlyName, [180, 60, 60]);
-          });
+        row('Score',           `${reportData.chat.score}/100`);
+        row('Sessions',        `${reportData.chat.totalSessions}`);
+        row('Active Days',     `${reportData.chat.activeDays} / 7`);
+        row('Messages',        `${reportData.chat.totalMessages || '—'}`);
+        row('Risk Level',      friendlyRisk(reportData.chat.riskLevel));
+        if (reportData.chat.weeklyRiskScore !== null)
+          row('Weekly Risk Score', `${reportData.chat.weeklyRiskScore}%`);
+        y += 2;
+        const rl = (reportData.chat.riskLevel || '').toLowerCase();
+        badge(
+          (reportData.chat.riskLevel || 'UNKNOWN').toUpperCase(),
+          rl === 'low' ? G.lgreen : rl === 'moderate' || rl === 'medium' ? G.lyellow : G.lred,
+          rl === 'low' ? G.green  : rl === 'moderate' || rl === 'medium' ? G.yellow  : G.red,
+          M
+        );
+        y += 8;
+        const concerns = Object.entries(reportData.chat.parameterConcerns || {});
+        if (concerns.length) {
+          doc.setFont('helvetica','bold'); doc.setFontSize(9); tc(G.red);
+          doc.text('Detected speech concerns:', M, y); y += 6;
+          concerns.forEach(([key]) => bullet(
+            FRIENDLY_PARAM_NAMES[key] || key.replace(/^p\d+_/,'').replace(/_/g,' '), G.red
+          ));
         } else {
-          y += 2; para('No concerns — conversations looked healthy this week.', [40, 140, 40]);
+          doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.green);
+          doc.text('No significant speech or language concerns detected this week.', M, y); y += 6;
         }
-
         if (reportData.chat.interpretation?.description) {
-          y += 2; label('What this means', reportData.chat.interpretation.description);
+          y += 2; doc.setFont('helvetica','italic'); doc.setFontSize(8.5); tc(G.gray);
+          doc.splitTextToSize(reportData.chat.interpretation.description, CW-4)
+            .forEach(l => { sp(6); doc.text(l, M, y); y += 5.5; });
         }
       } else {
-        para('No conversations happened this week. Encourage your loved one to use the chat feature.', [130, 130, 130]);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.gray);
+        doc.text('No conversations recorded this week.', M, y); y += 6;
       }
 
       // ── 2. Memory Test ──
-      heading('Memory Test (MMSE)');
+      sec('2.  Memory Test (MMSE)');
       if (reportData.mmse.hasData) {
-        label('Score', `${reportData.mmse.score} out of 100`);
-        label('Test Result', `${reportData.mmse.latestScore} out of 30`);
-        label('What This Means', friendlyMmseStatus(reportData.mmse.latestScore));
-        label('Compared to Before', friendlyTrend(reportData.mmse.trend));
-        if (reportData.mmse.weekChange !== 0) {
-          label('Change This Week', `${reportData.mmse.weekChange >= 0 ? '+' : ''}${reportData.mmse.weekChange} points`);
-        }
-        label('Total Tests Taken', `${reportData.mmse.totalTests}`);
-
-        if (reportData.mmse.breakdown.length > 0) {
-          y += 2; doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(50, 50, 50);
-          doc.text('Test areas:', m + 2, y); y += 7;
+        row('Score',         `${reportData.mmse.score}/100`);
+        row('MMSE Result',   `${reportData.mmse.latestScore} / 30`);
+        row('Status',        friendlyMmseStatus(reportData.mmse.latestScore));
+        row('Trend',         friendlyTrend(reportData.mmse.trend));
+        if (reportData.mmse.weekChange !== 0)
+          row('Change', `${reportData.mmse.weekChange > 0 ? '+' : ''}${reportData.mmse.weekChange} pts`);
+        row('Total Tests',   `${reportData.mmse.totalTests}`);
+        if (reportData.mmse.scoreHistory.length > 1)
+          row('History', reportData.mmse.scoreHistory.join(' → '));
+        if (reportData.mmse.breakdown.length) {
+          y += 3; doc.setFont('helvetica','bold'); doc.setFontSize(9); tc(G.navy);
+          doc.text('Domain breakdown:', M, y); y += 5;
           reportData.mmse.breakdown.forEach(b => {
-            const pct = Math.round((b.score / b.max) * 100);
-            bullet(`${b.name}: ${b.score}/${b.max} (${pct}%)`);
+            const p = b.max > 0 ? Math.round((b.score/b.max)*100) : 0;
+            bullet(`${b.name}:  ${b.score}/${b.max}  (${p}%)`);
           });
         }
-        if (reportData.mmse.scoreHistory.length > 1) {
-          y += 2; label('Past Scores', reportData.mmse.scoreHistory.join(' → '));
-        }
       } else {
-        para('No memory test was taken this week. Try to complete one each week.', [130, 130, 130]);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.gray);
+        doc.text('No memory test taken this week.', M, y); y += 6;
       }
 
       // ── 3. Brain Games ──
-      heading('Brain Games');
+      sec('3.  Brain Games');
+      doc.setFont('helvetica','italic'); doc.setFontSize(7.5); tc(G.gray);
+      doc.text('Health Score = 100 − risk score  (higher is better)', M, y); y += 6;
       if (reportData.game.hasData) {
-        label('Score', `${reportData.game.score} out of 100`);
-        label('Games Played', `${reportData.game.totalSessions}`);
-        label('How It Looks', friendlyRisk(reportData.game.currentRiskLevel));
-
-        if (reportData.game.sessions.length > 0) {
-          y += 2; doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(50);
-          doc.text('Recent games:', m + 2, y); y += 7;
-          reportData.game.sessions.slice(0, 5).forEach((s, i) => {
-            const dateStr = s.date ? new Date(s.date).toLocaleDateString() : `Game ${i + 1}`;
-            bullet(`${dateStr}: ${s.accuracy}% correct — ${friendlyRisk(s.riskLevel)}`);
+        row('Health Score',   `${reportData.game.score}/100`);
+        row('Risk Level',     friendlyRisk(reportData.game.currentRiskLevel));
+        row('Sessions',       `${reportData.game.totalSessions}`);
+        row('Avg SAC',        `${reportData.game.avgSAC}`);
+        row('Avg IES',        `${reportData.game.avgIES}`);
+        y += 2;
+        const gl = (reportData.game.currentRiskLevel || '').toLowerCase();
+        badge(
+          (reportData.game.currentRiskLevel || 'UNKNOWN').toUpperCase(),
+          gl === 'low' ? G.lgreen : gl === 'high' ? G.lred : G.lyellow,
+          gl === 'low' ? G.green  : gl === 'high' ? G.red  : G.yellow,
+          M
+        );
+        y += 8;
+        if (reportData.game.sessions.length) {
+          doc.setFont('helvetica','bold'); doc.setFontSize(9); tc(G.navy);
+          doc.text('Recent sessions:', M, y); y += 5;
+          reportData.game.sessions.slice(0,5).forEach((s,i) => {
+            bullet(`${s.date ? new Date(s.date).toLocaleDateString() : `Session ${i+1}`}  —  accuracy ${s.accuracy}%  —  ${friendlyRisk(s.riskLevel)}`);
           });
         }
       } else {
-        para('No brain games were played this week. Games help keep the mind active!', [130, 130, 130]);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.gray);
+        doc.text('No brain game sessions recorded this week.', M, y); y += 6;
       }
 
       // ── 4. Medications ──
-      heading('Medications & Reminders');
+      sec('4.  Medications & Reminders');
       if (reportData.reminder.hasData) {
-        label('Score', `${reportData.reminder.score} out of 100`);
-        label('Taken on Time', `${reportData.reminder.complianceRate}%`);
-        label('Completed', `${reportData.reminder.completed} out of ${reportData.reminder.total}`);
-        if (reportData.reminder.missed > 0) label('Missed', `${reportData.reminder.missed}`);
-        label('Compared to Last Week', reportData.reminder.weekChange);
-        label('Trend', friendlyTrend(reportData.reminder.trend));
+        row('Score',          `${reportData.reminder.score}/100`);
+        row('Compliance',     `${reportData.reminder.complianceRate}%`);
+        row('Completed',      `${reportData.reminder.completed}`);
+        row('Missed',         `${reportData.reminder.missed}`);
+        row('Total',          `${reportData.reminder.total}`);
+        row('Week Change',    reportData.reminder.weekChange);
+        row('Trend',          friendlyTrend(reportData.reminder.trend));
+        y += 3; sp(10);
+        const bw = CW * 0.55, fill = Math.max(bw*(reportData.reminder.complianceRate/100), 2);
+        const barCol = reportData.reminder.complianceRate >= 75 ? G.green : reportData.reminder.complianceRate >= 50 ? G.yellow : G.red;
+        fc(G.lgray); doc.roundedRect(M, y, bw, 5, 1.5, 1.5, 'F');
+        fc(barCol);  doc.roundedRect(M, y, fill, 5, 1.5, 1.5, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(8); tc(barCol);
+        doc.text(`${reportData.reminder.complianceRate}%`, M + bw + 3, y + 4); y += 10;
       } else {
-        para('No medication reminders were tracked this week.', [130, 130, 130]);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.gray);
+        doc.text('No medication reminder data this week.', M, y); y += 6;
       }
 
-      // ── What's Going Well ──
-      heading("What's Going Well");
-      let hasStrengths = false;
-      if (reportData.chat.hasData && reportData.chat.score >= 60) { bullet(`Conversations look healthy (${reportData.chat.totalSessions} chats)`, [30, 130, 80]); hasStrengths = true; }
-      if (reportData.mmse.hasData && reportData.mmse.latestScore >= 24) { bullet(`Memory test in normal range (${reportData.mmse.latestScore}/30)`, [30, 130, 80]); hasStrengths = true; }
-      if (reportData.game.hasData && reportData.game.score >= 60) { bullet(`Brain games going well (${reportData.game.totalSessions} sessions)`, [30, 130, 80]); hasStrengths = true; }
-      if (reportData.reminder.hasData && reportData.reminder.complianceRate >= 75) { bullet(`Medications taken ${reportData.reminder.complianceRate}% of the time`, [30, 130, 80]); hasStrengths = true; }
-      if (sc >= 70) { bullet('Overall doing well this week!', [30, 130, 80]); hasStrengths = true; }
-      if (!hasStrengths) { para('Not enough activity this week to see what went well.', [130, 130, 130]); }
+      // ── 5. Summary & Highlights ──
+      sec('5.  Summary & Highlights');
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.dark);
+      doc.splitTextToSize(reportData.summary, CW-4).forEach(l => { sp(6); doc.text(l, M, y); y += 5.5; });
+      y += 4;
 
-      heading('What Needs Attention');
-      let hasConcerns = false;
-      if (!reportData.chat.hasData) { bullet('No chats this week — try to have a few conversations', [200, 120, 20]); hasConcerns = true; }
-      if (!reportData.mmse.hasData) { bullet('No memory test taken — try to do one this week', [200, 120, 20]); hasConcerns = true; }
-      if (!reportData.game.hasData) { bullet('No brain games played — games help keep the mind sharp', [200, 120, 20]); hasConcerns = true; }
-      if (reportData.chat.hasData && reportData.chat.score < 60) { bullet(`Conversations showed some concerns`, [200, 80, 40]); hasConcerns = true; }
-      if (reportData.mmse.hasData && reportData.mmse.latestScore < 24) { bullet(`Memory test scored ${reportData.mmse.latestScore}/30 — ${friendlyMmseStatus(reportData.mmse.latestScore).toLowerCase()}`, [200, 80, 40]); hasConcerns = true; }
-      if (reportData.reminder.hasData && reportData.reminder.complianceRate < 75) { bullet(`Medications taken only ${reportData.reminder.complianceRate}% — ${reportData.reminder.missed} missed`, [200, 80, 40]); hasConcerns = true; }
-      if (!hasConcerns) { para('No major concerns this week — keep it up!', [30, 130, 80]); }
+      // What's going well
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); tc(G.green);
+      doc.text('Going well:', M, y); y += 5;
+      let gs = false;
+      if (reportData.chat.hasData     && reportData.chat.score     >= 60) { bullet(`Conversations healthy (${reportData.chat.totalSessions} sessions)`, G.green); gs = true; }
+      if (reportData.mmse.hasData     && reportData.mmse.latestScore >= 24) { bullet(`Memory test normal range (${reportData.mmse.latestScore}/30)`, G.green); gs = true; }
+      if (reportData.game.hasData     && reportData.game.score      >= 60) { bullet(`Brain games performing well`, G.green); gs = true; }
+      if (reportData.reminder.hasData && reportData.reminder.complianceRate >= 75) { bullet(`Medications ${reportData.reminder.complianceRate}% compliance`, G.green); gs = true; }
+      if (!gs) { doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.gray); doc.text('Not enough activity this week.', M+3, y); y += 6; }
 
-      // ── Summary ──
-      heading('Weekly Summary');
-      para(reportData.summary);
+      y += 3;
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); tc(G.orange);
+      doc.text('Needs attention:', M, y); y += 5;
+      let gc = false;
+      if (!reportData.chat.hasData)    { bullet('No conversations this week', G.orange); gc = true; }
+      if (!reportData.mmse.hasData)    { bullet('No memory test taken', G.orange); gc = true; }
+      if (!reportData.game.hasData)    { bullet('No brain game sessions', G.orange); gc = true; }
+      if (reportData.chat.hasData     && reportData.chat.score     < 60) { bullet(`Conversation concerns — ${friendlyRisk(reportData.chat.riskLevel)}`, G.red); gc = true; }
+      if (reportData.mmse.hasData     && reportData.mmse.latestScore < 24) { bullet(`Memory test ${reportData.mmse.latestScore}/30 — ${friendlyMmseStatus(reportData.mmse.latestScore)}`, G.red); gc = true; }
+      if (reportData.game.hasData     && reportData.game.score      < 50) { bullet(`Brain game performance low — ${friendlyRisk(reportData.game.currentRiskLevel)}`, G.red); gc = true; }
+      if (reportData.reminder.hasData && reportData.reminder.complianceRate < 75) { bullet(`Only ${reportData.reminder.complianceRate}% medication compliance — ${reportData.reminder.missed} missed`, G.red); gc = true; }
+      if (!gc) { doc.setFont('helvetica','normal'); doc.setFontSize(9); tc(G.green); doc.text('No major concerns this week.', M+3, y); y += 6; }
 
-      // ── Disclaimer ──
-      y += 6; checkPage(14); hr();
-      doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.setTextColor(140);
-      para('This report is created by an AI health assistant. It is meant to help you keep track of your loved one — it does not replace a doctor. Always talk to a healthcare professional about medical decisions.', [140, 140, 140]);
+      // Disclaimer
+      sp(16); y += 6;
+      doc.setDrawColor(220,220,220); doc.setLineWidth(0.2); doc.line(M, y, pw-M, y); y += 5;
+      doc.setFont('helvetica','italic'); doc.setFontSize(7.5); tc(G.gray);
+      doc.splitTextToSize(
+        'This report is auto-generated by Hale Dementia Care and is intended as a monitoring aid only. It does not constitute a medical diagnosis or replace professional clinical judgement.',
+        CW
+      ).forEach(l => { sp(5); doc.text(l, M, y); y += 4.5; });
 
       footers();
-      doc.save(`Weekly_Report_${user.name.replace(/\s+/g, '_')}_${reportData.weekEnding}.pdf`);
+      doc.save(`Weekly_Report_${user.name.replace(/\s+/g,'_')}_${reportData.weekEnding}.pdf`);
     } catch (err) {
       console.error('PDF generation failed:', err);
       alert('Could not create the report. Please try again.');

@@ -98,6 +98,17 @@ export const loginCaregiver = async (email, password) => {
     if (data.caregiver.profile_photo) {
       localStorage.setItem('profile_photo', data.caregiver.profile_photo);
     }
+
+    // Sync patients: ensure users who have this caregiver_id set on their
+    // account (e.g. linked via mobile app) appear in caregivers.patient_ids
+    try {
+      await fetch(`${API_BASE_URL}/api/caregiver/sync-patients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.access_token}` }
+      });
+    } catch (_) {
+      // Non-critical — dashboard still works, just may not show new users yet
+    }
   }
 
   return data;

@@ -293,8 +293,10 @@ async function fetchGameData(patientId) {
     const currentRiskLevel = statsRes?.currentRiskLevel || 'N/A';
     const recentRiskScore = statsRes?.recentRiskScore || 0;
 
-    // Game score: lower risk = higher score
-    const gameScore = Math.round(Math.max(0, Math.min(100, 100 - recentRiskScore)));
+    // Game score: lower risk = higher score. Null when no sessions (exclude from overall).
+    const gameScore = totalSessions > 0
+      ? Math.round(Math.max(0, Math.min(100, 100 - recentRiskScore)))
+      : null;
 
     // Process history for display
     const sessions = [];
