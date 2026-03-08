@@ -36,7 +36,8 @@ import {
   getSnoozedReminders,
   getAdherenceRiskScore,
   getPatientReminders,
-  getUserRemindersAll
+  getUserRemindersAll,
+  getCaregiverDashboardReminders
 } from '../services/api';
 import generateWeeklyPDF from '../utils/generateWeeklyPDF';
 
@@ -99,7 +100,7 @@ const ReminderDashboard = () => {
       setError(null);
 
       // Fetch all data in parallel
-      const [dashboardData, missedData, activityData, alertsData, groupedData, snoozedData, adherenceData, allData] = await Promise.all([
+      const [dashboardData, missedData, activityData, alertsData, groupedData, snoozedData, adherenceData, allData, dashboardRemindersData] = await Promise.all([
         getPatientDashboard(selectedPatient),
         getMissedReminders(selectedPatient, 7).catch(() => ({ success: false })),
         getActivityCompletion(selectedPatient, 7).catch(() => ({ success: false })),
@@ -107,7 +108,8 @@ const ReminderDashboard = () => {
         getAllRemindersGrouped(selectedPatient, 7).catch(() => null),
         getSnoozedReminders(selectedPatient, 7).catch(() => null),
         getAdherenceRiskScore(selectedPatient, 30).catch(() => null),
-        getUserRemindersAll(selectedPatient).catch(() => null)   // real reminders endpoint
+        getUserRemindersAll(selectedPatient).catch(() => null),   // real reminders endpoint
+        getCaregiverDashboardReminders(7).catch(() => null)       // NEW — all patients grouped
       ]);
 
       if (dashboardData.success) setDashboard(dashboardData);
@@ -116,60 +118,106 @@ const ReminderDashboard = () => {
       if (alertsData.success) setAlerts(alertsData.alerts || []);
 
       // ── Grouped reminders ───────────────────────────────────────────────
-      // allData can be: array directly, { reminders:[...] }, { data:[...] }, { items:[...] }, { results:[...] }
-      const rawList = Array.isArray(allData)
-        ? allData
-        : (allData?.reminders || allData?.data || allData?.items || allData?.results || []);
-      if (allData && rawList.length === 0) {
-        console.debug('[ReminderDashboard] getUserRemindersAll response:', allData);
-      }
-      if (rawList.length > 0) setAllReminders(rawList);
-      const flat = rawList;
-
+      // Primary source: /grouped endpoint (one call, all statuses)
       if (groupedData?.success) {
-        // Backend grouped endpoint available — use it directly
-        setGroupedReminders(groupedData);
-      } else if (flat.length > 0) {
-        // Fallback: build grouped structure client-side from the flat list
-        const now = new Date();
-        const groups = { active: [], completed: [], missed: [], snoozed: [] };
-        flat.forEach(r => {
-          const s = (r.status || '').toLowerCase();
-          if (s === 'completed') {
-            groups.completed.push(r);
-          } else if (s === 'snoozed') {
-            groups.snoozed.push(r);
-          } else if (s === 'missed') {
-            groups.missed.push(r);
-          } else {
-            // status is "active" — check if the scheduled time has passed
-            const scheduledAt = r.scheduled_time ? new Date(r.scheduled_time) : null;
-            if (scheduledAt && !isNaN(scheduledAt) && scheduledAt < now) {
-              // Overdue: treat as missed
-              groups.missed.push({ ...r, _overdue: true });
-            } else {
-              groups.active.push(r);
-            }
-          }
-        });
-        const total = flat.length;
-        const completed = groups.completed.length;
+        const rem = groupedData.reminders || groupedData;
         setGroupedReminders({
           success: true,
-          ...groups,
-          summary: {
-            total,
-            active:    groups.active.length,
-            completed,
-            missed:    groups.missed.length,
-            snoozed:   groups.snoozed.length,
-            compliance_rate: total > 0 ? Math.round((completed / total) * 100) : 0
-          }
+          active:    rem.active    || [],
+          completed: rem.completed || [],
+          missed:    rem.missed    || [],
+          snoozed:   rem.snoozed   || [],
+          summary:   groupedData.summary || {
+            total:           (rem.active?.length || 0) + (rem.completed?.length || 0) + (rem.missed?.length || 0) + (rem.snoozed?.length || 0),
+            active:          rem.active?.length    || 0,
+            completed:       rem.completed?.length || 0,
+            missed:          rem.missed?.length    || 0,
+            snoozed:         rem.snoozed?.length   || 0,
+            compliance_rate: groupedData.summary?.compliance_rate ?? 0,
+          },
         });
-        // Also back-fill missedReminders from flat list so Overview tab works
-        if (groups.missed.length > 0 && (missedData?.missed_reminders?.length ?? 0) === 0) {
-          setMissedReminders(groups.missed);
+        // Back-fill missed reminders for Overview tab
+        if (rem.missed?.length && (missedData?.missed_reminders?.length ?? 0) === 0) {
+          setMissedReminders(rem.missed);
         }
+      } else {
+        // Fallback: build grouped structure client-side from flat list
+        const rawList = Array.isArray(allData)
+          ? allData
+          : (allData?.reminders || allData?.data || allData?.items || allData?.results || []);
+        if (allData && rawList.length === 0) {
+          console.debug('[ReminderDashboard] getUserRemindersAll response:', allData);
+        }
+        if (rawList.length > 0) setAllReminders(rawList);
+        const flat = rawList;
+
+        if (flat.length > 0) {
+          const now = new Date();
+          const groups = { active: [], completed: [], missed: [], snoozed: [] };
+          flat.forEach(r => {
+            const s = (r.status || '').toLowerCase();
+            if (s === 'completed') {
+              groups.completed.push(r);
+            } else if (s === 'snoozed') {
+              groups.snoozed.push(r);
+            } else if (s === 'missed') {
+              groups.missed.push(r);
+            } else {
+              const scheduledAt = r.scheduled_time ? new Date(r.scheduled_time) : null;
+              if (scheduledAt && !isNaN(scheduledAt) && scheduledAt < now) {
+                groups.missed.push({ ...r, _overdue: true });
+              } else {
+                groups.active.push(r);
+              }
+            }
+          });
+          const total = flat.length;
+          const completed = groups.completed.length;
+          setGroupedReminders({
+            success: true,
+            ...groups,
+            summary: {
+              total,
+              active:    groups.active.length,
+              completed,
+              missed:    groups.missed.length,
+              snoozed:   groups.snoozed.length,
+              compliance_rate: total > 0 ? Math.round((completed / total) * 100) : 0,
+            },
+          });
+          if (groups.missed.length > 0 && (missedData?.missed_reminders?.length ?? 0) === 0) {
+            setMissedReminders(groups.missed);
+          }
+        }
+      }
+
+      // ── Dashboard-level reminders (all patients, overrides per-patient) ──
+      if (dashboardRemindersData?.success && dashboardRemindersData.reminders) {
+        const dr = dashboardRemindersData.reminders;
+        const ds = dashboardRemindersData.summary || {};
+        setGroupedReminders({
+          success: true,
+          active:    dr.active    || [],
+          completed: dr.completed || [],
+          missed:    dr.missed    || [],
+          snoozed:   dr.snoozed   || [],
+          summary: {
+            total:           ds.total           ?? 0,
+            active:          ds.active          ?? (dr.active?.length    || 0),
+            completed:       ds.completed       ?? (dr.completed?.length || 0),
+            missed:          ds.missed          ?? (dr.missed?.length    || 0),
+            snoozed:         dr.snoozed?.length || 0,
+            compliance_rate: ds.compliance_rate  ?? 0,
+          },
+        });
+        if (dr.missed?.length && (missedData?.missed_reminders?.length ?? 0) === 0) {
+          setMissedReminders(dr.missed);
+        }
+        setAllReminders([
+          ...(dr.active    || []),
+          ...(dr.completed || []),
+          ...(dr.missed    || []),
+        ]);
       }
 
       if (snoozedData?.success) setSnoozedReminders(snoozedData.snoozed_reminders || []);
@@ -728,10 +776,13 @@ const ReminderDashboard = () => {
                           <div className="flex items-center gap-3 mt-1">
                             <span className="flex items-center text-xs text-gray-400">
                               <Clock className="w-3 h-3 mr-1" />
-                              {formatTime(reminder.scheduled_time)}
+                              {formatTime(reminder.scheduled_time || reminder.scheduled_datetime)}
                             </span>
                             {reminder.completed_at && (
                               <span className="text-xs text-gray-400">✓ {formatTime(reminder.completed_at)}</span>
+                            )}
+                            {reminder.patient_name && (
+                              <span className="text-xs text-gray-400 font-medium">• {reminder.patient_name}</span>
                             )}
                           </div>
                         </div>

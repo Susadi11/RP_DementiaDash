@@ -568,6 +568,23 @@ export const getAdherenceRiskScore = async (patientId, days = 30) => {
 };
 
 /**
+ * Get all reminders across all linked patients, grouped by status
+ * Uses the caregiver dashboard endpoint (no patient_id needed)
+ * @param {number} days - Number of days to look back (default: 7)
+ */
+export const getCaregiverDashboardReminders = async (days = 7) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/dashboard/reminders/all?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
  * Resolve a caregiver alert
  * @param {string} alertId - Alert ID
  */
