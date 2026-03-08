@@ -53,6 +53,14 @@ const MMSEModule = () => {
   const [endDate, setEndDate] = useState('');
   const caregiverId = getCurrentCaregiverId();
 
+  const RAW_MAX_SCORE = 20;   // backend max
+  const DISPLAY_MAX_SCORE = 30; // standard MMSE display
+
+  const scaleScore = (rawScore) => {
+  if (rawScore === null || rawScore === undefined) return 0;
+  return Math.round((rawScore / RAW_MAX_SCORE) * DISPLAY_MAX_SCORE);
+};
+
   useEffect(() => {
     fetchPatients();
   }, []);
@@ -107,7 +115,8 @@ const MMSEModule = () => {
         return {
           ...p,
           displayName: p.name || p.full_name || p.username || p.user_id?.split('-').slice(1, -2).join(' ') || p.user_id,
-          displayScore: score,
+          displayScore: scaleScore(score),
+          rawScore: score,
           displayDate: dateStr,
           displayML: mlPred,
           totalTests: assessments.length || p.total_tests || (score > 0 ? 1 : 0),
@@ -178,7 +187,8 @@ const MMSEModule = () => {
         return {
           ...a,
           id: a.id || a._id || `idx-${idx}`,
-          total_score: calcScore ?? 0,
+          raw_score: calcScore ?? 0,
+          total_score: scaleScore(calcScore ?? 0),
           date: isValidDate ? parsedDate.toISOString() : null,
           formattedDate: isValidDate ? parsedDate.toLocaleDateString() : 'Unknown Date',
           formattedTime: isValidDate ? parsedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'No Time',
@@ -287,7 +297,11 @@ const MMSEModule = () => {
     doc.text('EXECUTIVE SUMMARY', 30, 105);
 
     // Score Circle/Box simulation
-    const scoreColor = assessment.total_score >= 24 ? [22, 101, 52] : assessment.total_score >= 18 ? [180, 83, 9] : [185, 28, 28];
+    const scoreColor =
+  assessment.total_score >= 26 ? [22,101,52] :
+  assessment.total_score >= 20 ? [180,83,9] :
+  assessment.total_score >= 10 ? [249,115,22] :
+  [185,28,28];
     doc.setFillColor(scoreColor[0], scoreColor[1], scoreColor[2]);
     doc.roundedRect(30, 110, 40, 25, 2, 2, 'F');
 
@@ -307,7 +321,7 @@ const MMSEModule = () => {
     doc.setFont('helvetica', 'bold');
     doc.text('ML RISK:', 80, 126);
     doc.setFont('helvetica', 'normal');
-    doc.text(assessment.ml_summary?.ml_risk_label || (assessment.total_score >= 24 ? 'CONTROL' : 'IMPAIRED'), 110, 126);
+    doc.text(assessment.ml_summary?.ml_risk_label || (assessment.total_score >= 26 ? 'CONTROL' : 'IMPAIRED'), 110, 126);
 
     // Detailed Item Analysis Table
     doc.setTextColor(30, 50, 100);
@@ -507,15 +521,17 @@ const MMSEModule = () => {
   }, [patients]);
 
   const getScoreColor = (score) => {
-    if (score >= 24) return 'text-green-600';
-    if (score >= 18) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 26) return 'text-green-600';   // Normal
+    if (score >= 20) return 'text-yellow-600';  // Mild
+    if (score >= 10) return 'text-orange-600';  // Moderate
+    return 'text-red-600';                      // Severe
   };
 
   const getScoreStatus = (score) => {
-    if (score >= 24) return 'Normal';
-    if (score >= 18) return 'Mild';
-    return 'Moderate';
+    if (score >= 26) return 'Normal';
+    if (score >= 20) return 'Mild Impairment';
+    if (score >= 10) return 'Moderate Impairment';
+    return 'Severe Impairment';
   };
 
   const getStatusBadge = (score, mlPrediction) => {
@@ -524,8 +540,9 @@ const MMSEModule = () => {
         mlPrediction.toLowerCase().includes('risk') || mlPrediction.toLowerCase().includes('mild') ? 'warning' : 'error';
       return <Badge variant={variant}>{mlPrediction}</Badge>;
     }
-    if (score >= 24) return <Badge variant="success">Normal</Badge>;
-    if (score >= 18) return <Badge variant="warning">Mild Impairment</Badge>;
+    if (score >= 26) return <Badge variant="success">Normal</Badge>;
+    if (score >= 20) return <Badge variant="warning">Mild Impairment</Badge>;
+
     return <Badge variant="error">Moderate Impairment</Badge>;
   };
 
