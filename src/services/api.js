@@ -672,3 +672,44 @@ export const getGameHistory = async (userId, limit = 20) => {
 
   return handleResponse(response);
 };
+
+// ============================================
+// RISK PREDICTION API ENDPOINTS
+// ============================================
+
+/**
+ * Trigger a standalone risk prediction using the last N game sessions
+ * Calls POST /risk/predict/{userId}
+ * Returns: { user_id, window_size, features_used, prediction: { prob_low, prob_medium, prob_high, label, risk_score_0_100 }, created_at }
+ * @param {string} userId - Patient User ID
+ * @param {number} n - Window size (number of past sessions, default: 10)
+ */
+export const getRiskPrediction = async (userId, n = 10) => {
+  const response = await fetch(`${API_BASE_URL}/risk/predict/${userId}?N=${n}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get the full history of standalone risk predictions for a patient
+ * Calls GET /risk/history/{userId}
+ * Returns: { user_id, total_predictions, history: [...] }
+ * @param {string} userId - Patient User ID
+ */
+export const getRiskHistory = async (userId) => {
+  const response = await fetch(`${API_BASE_URL}/risk/history/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
