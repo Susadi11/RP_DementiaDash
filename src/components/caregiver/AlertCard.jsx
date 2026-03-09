@@ -60,11 +60,28 @@ const AlertCard = ({ alert, onResolve }) => {
           )}
           
           <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-1">
+            <div className="flex items-center flex-wrap gap-1.5 mb-1">
               <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
               <span className={`px-2 py-0.5 text-xs font-medium rounded ${styles.badge}`}>
                 {priority.toUpperCase()}
               </span>
+              {type && (() => {
+                const typeLabels = {
+                  missed_medication:  '❌ Missed',
+                  snoozed_reminder:   '💤 Snoozed',
+                  new_high_priority:  '💊 High Priority',
+                };
+                const typeColors = {
+                  missed_medication:  'bg-red-100 text-red-700',
+                  snoozed_reminder:   'bg-yellow-100 text-yellow-700',
+                  new_high_priority:  'bg-purple-100 text-purple-700',
+                };
+                return (
+                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${typeColors[type] || 'bg-gray-100 text-gray-600'}`}>
+                    {typeLabels[type] || type}
+                  </span>
+                );
+              })()}
             </div>
             <p className="text-sm text-gray-700">{message}</p>
             <p className="text-xs text-gray-500 mt-2">{formatDate(created_at)}</p>

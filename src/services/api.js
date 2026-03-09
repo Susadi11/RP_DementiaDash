@@ -321,6 +321,40 @@ export const getSessionById = async (sessionId) => {
 };
 
 // ============================================
+// CRISIS ALERT API ENDPOINTS
+// ============================================
+
+/**
+ * Get unacknowledged crisis alerts for a patient
+ */
+export const getCrisisAlerts = async (userId) => {
+  const response = await fetch(`${API_BASE_URL}/chat/crisis-alerts/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Acknowledge (dismiss) a crisis alert
+ */
+export const acknowledgeCrisisAlert = async (alertId) => {
+  const response = await fetch(`${API_BASE_URL}/chat/crisis-alerts/${alertId}/acknowledge`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+// ============================================
 // CAREGIVER DASHBOARD API ENDPOINTS
 // ============================================
 

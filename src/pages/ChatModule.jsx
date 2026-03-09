@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import {
   Download, Calendar, ChevronDown, ChevronUp, AlertTriangle, CheckCircle,
-  Info, Clock, MessageCircle, Activity, FileText, MessageSquare, RefreshCw,
+  Info, Clock, MessageCircle, Activity, MessageSquare, RefreshCw,
   Edit3, HelpCircle, Pause, Mic, Heart, Timer, Moon, TrendingDown, Brain, Target,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { getPatientSessions, getWeeklyRisk, getLinkedPatientsDetails } from '../services/api';
+import { getPatientSessions, getWeeklyRisk, getLinkedPatientsDetails, getCrisisAlerts, acknowledgeCrisisAlert } from '../services/api';
 import jsPDF from 'jspdf';
 
 // Parameter explanations in simple terms for caregivers with professional icons
@@ -190,6 +190,7 @@ const ChatModule = () => {
   const [expandedSessions, setExpandedSessions] = useState({});
   const [weeklyRisk, setWeeklyRisk] = useState(null);
   const [patient, setPatient] = useState(null);
+  const [crisisAlerts, setCrisisAlerts] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(() => {
     const now = new Date();
     const dayOfWeek = now.getDay();
@@ -197,6 +198,24 @@ const ChatModule = () => {
     const monday = new Date(now.setDate(diff));
     return monday.toISOString().split('T')[0];
   });
+
+  const fetchCrisisAlerts = async (userId) => {
+    try {
+      const data = await getCrisisAlerts(userId);
+      if (data.success) setCrisisAlerts(data.alerts || []);
+    } catch (e) {
+      console.log('Crisis alerts fetch failed:', e);
+    }
+  };
+
+  const handleAcknowledgeAlert = async (alertId) => {
+    try {
+      await acknowledgeCrisisAlert(alertId);
+      setCrisisAlerts(prev => prev.filter(a => a._id !== alertId));
+    } catch (e) {
+      console.error('Failed to acknowledge alert:', e);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -208,6 +227,11 @@ const ChatModule = () => {
           setPatient(patientsData.patients[0]);
 
           const userId = patientsData.patients[0].user_id;
+
+          // Fetch crisis alerts and poll every 30s
+          fetchCrisisAlerts(userId);
+          const crisisInterval = setInterval(() => fetchCrisisAlerts(userId), 30000);
+          setTimeout(() => clearInterval(crisisInterval), 300000); // stop after 5 min
 
           const weekStart = new Date(selectedWeek);
           const weekEnd = new Date(weekStart);
@@ -362,7 +386,6 @@ const ChatModule = () => {
     const summaryRows = [
       ['Total Chat Sessions', String(sessions.length)],
       ['Active Days', `${sortedDays.length} of 7`],
-      ['Total Messages', String(sessions.reduce((s, x) => s + (x.message_count || 0), 0))],
       ['Avg Sessions / Day', sortedDays.length > 0 ? (sessions.length / sortedDays.length).toFixed(1) : '0'],
     ];
     if (weeklyRisk) {
@@ -423,7 +446,7 @@ const ChatModule = () => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(70, 70, 70);
-        doc.text(`Score: ${session.session_raw_score || 0}/36   |   Messages: ${session.message_count || 0}   |   Risk: ${sRisk.level} — ${sRisk.description}`, margin + 6, y);
+        doc.text(`Score: ${session.session_raw_score || 0}/36   |   Risk: ${sRisk.level} — ${sRisk.description}`, margin + 6, y);
         y += 5;
 
         const concerns = Object.entries(PARAMETER_EXPLANATIONS)
@@ -524,6 +547,34 @@ const ChatModule = () => {
           </Button>
         </div>
 
+        {/* Crisis Alert Banner */}
+        {crisisAlerts.length > 0 && (
+          <div className="space-y-2">
+            {crisisAlerts.map((alert) => (
+              <div key={alert._id} className="flex items-start justify-between gap-4 bg-red-50 border border-red-300 rounded-xl px-4 py-3 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-800">Crisis Alert — Immediate Attention Required</p>
+                    <p className="text-sm text-red-700 mt-0.5">
+                      Patient said: <span className="italic">"{alert.message_preview}"</span>
+                    </p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {new Date(alert.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleAcknowledgeAlert(alert._id)}
+                  className="shrink-0 text-xs font-medium text-red-700 border border-red-300 rounded-lg px-3 py-1.5 hover:bg-red-100 transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Patient Info */}
         {patient && (
           <Card className="!bg-gradient-to-br !from-deepBlue/5 !to-primary/5 !border-primary/10">
@@ -586,7 +637,7 @@ const ChatModule = () => {
         )}
 
         {/* Weekly Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Card className="text-center !p-5">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center mx-auto mb-2.5">
               <MessageCircle className="w-4 h-4 text-white" />
@@ -608,15 +659,6 @@ const ChatModule = () => {
             <p className="text-[11px] text-secondary font-medium mb-1">Avg Sessions/Day</p>
             <p className="text-2xl font-bold text-gray-900">
               {sortedDays.length > 0 ? (sessions.length / sortedDays.length).toFixed(1) : '0'}
-            </p>
-          </Card>
-          <Card className="text-center !p-5">
-            <div className="w-9 h-9 bg-gradient-to-br from-pink-500 to-rose-400 rounded-xl flex items-center justify-center mx-auto mb-2.5">
-              <FileText className="w-4 h-4 text-white" />
-            </div>
-            <p className="text-[11px] text-secondary font-medium mb-1">Total Messages</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {sessions.reduce((sum, s) => sum + (s.message_count || 0), 0)}
             </p>
           </Card>
         </div>
@@ -688,7 +730,7 @@ const ChatModule = () => {
                                   Session {idx + 1}: {getTimeWindowName(session.time_window)}
                                 </h4>
                                 <p className="text-xs text-gray-500 mt-0.5">
-                                  {session.message_count || 0} messages · Score: {session.session_raw_score || 0}/36
+                                  Score: {session.session_raw_score || 0}/36
                                 </p>
                               </div>
                               <div className="flex items-center space-x-3">
