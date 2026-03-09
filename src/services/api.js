@@ -321,40 +321,6 @@ export const getSessionById = async (sessionId) => {
 };
 
 // ============================================
-// CRISIS ALERT API ENDPOINTS
-// ============================================
-
-/**
- * Get unacknowledged crisis alerts for a patient
- */
-export const getCrisisAlerts = async (userId) => {
-  const response = await fetch(`${API_BASE_URL}/chat/crisis-alerts/${userId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader()
-    }
-  });
-
-  return handleResponse(response);
-};
-
-/**
- * Acknowledge (dismiss) a crisis alert
- */
-export const acknowledgeCrisisAlert = async (alertId) => {
-  const response = await fetch(`${API_BASE_URL}/chat/crisis-alerts/${alertId}/acknowledge`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader()
-    }
-  });
-
-  return handleResponse(response);
-};
-
-// ============================================
 // CAREGIVER DASHBOARD API ENDPOINTS
 // ============================================
 
@@ -756,6 +722,45 @@ export const getRiskHistory = async (userId) => {
 export const getDailyScores = async (patientId, days = 7) => {
   const response = await fetch(`${API_BASE_URL}/api/caregiver/daily-scores/${patientId}?days=${days}`, {
     method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Get crisis alerts for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {Object} filters - Optional filters { acknowledged }
+ */
+export const getCrisisAlerts = async (patientId, filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.acknowledged !== undefined) params.append('acknowledged', filters.acknowledged);
+
+  const queryString = params.toString();
+  const url = `${API_BASE_URL}/api/caregiver/crisis-alerts/${patientId}${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Acknowledge a crisis alert
+ * @param {string} alertId - Crisis alert ID
+ */
+export const acknowledgeCrisisAlert = async (alertId) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/crisis-alerts/${alertId}/acknowledge`, {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...getAuthHeader()
