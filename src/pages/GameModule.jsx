@@ -16,7 +16,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { getLinkedPatientsDetails, getGameStats, getGameHistory, getRiskPrediction, getRiskHistory } from '../services/api';
 
-// â”€â”€ colour palette matching the app â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  colour palette matching the app    
 const C = {
   primary:  '#0EA5E9',
   deepBlue: '#1E3A8A',
@@ -28,16 +28,16 @@ const C = {
   slate:    '#64748B',
 };
 
-// â”€â”€ colour helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// colour helpers 
 const riskHex   = (l) => ({ LOW: C.green, MEDIUM: C.yellow, HIGH: C.red }[l?.toUpperCase()] ?? C.slate);
 const riskCls   = (l) => ({ LOW: 'text-green-600', MEDIUM: 'text-yellow-600', HIGH: 'text-red-600' }[l?.toUpperCase()] ?? 'text-gray-500');
 const riskBgCls = (l) => ({ LOW: 'bg-green-50 border-green-200', MEDIUM: 'bg-yellow-50 border-yellow-200', HIGH: 'bg-red-50 border-red-200' }[l?.toUpperCase()] ?? 'bg-gray-50 border-gray-200');
 
 const fmt     = (v, d = 0) => (v !== undefined && v !== null ? Number(v).toFixed(d) : '--');
 const fmtDate = (ts) => { try { return new Date(ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }); } catch { return '--'; } };
-const fmtShort = (ts, idx) => { try { return new Date(ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }); } catch { return `S${idx + 1}`; } };
+const fmtShort = (ts, idx) => { try { const d = new Date(ts); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); } catch { return `S${idx + 1}`; } };
 
-// â”€â”€ Custom tooltip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  Custom tooltip 
 const ChartTip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
@@ -56,16 +56,14 @@ const ChartTip = ({ active, payload, label }) => {
   );
 };
 
-// â”€â”€ coloured dot for line charts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  coloured dot for line charts 
 const RiskDot = (props) => {
   const { cx, cy, payload } = props;
   const color = riskHex(payload?.riskLevel);
   return <circle cx={cx} cy={cy} r={5} fill={color} stroke="#fff" strokeWidth={2} />;
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Main component
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ 
 const GameModule = () => {
   const [patient,        setPatient]        = useState(null);
   const [stats,          setStats]          = useState(null);
@@ -116,28 +114,36 @@ const GameModule = () => {
 
   useEffect(() => { fetchData(); }, []);
 
-  // â”€â”€ Derive chart data from sessions (chronological order) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  //Derive chart data from sessions (chronological order) 
   const chartData = useMemo(() => {
     if (!sessions.length) return [];
     return [...sessions].reverse().map((s, i) => ({
       label:     fmtShort(s.timestamp, i),
       session:   i + 1,
-      riskScore: s.prediction?.riskScore0_100  ?? null,
-      riskLevel: s.prediction?.riskLevel       ?? null,
-      sac:       s.features?.sac != null       ? parseFloat((s.features.sac).toFixed(4))       : null,
-      ies:       s.features?.ies != null       ? parseFloat((s.features.ies).toFixed(2))       : null,
-      accuracy:  s.features?.accuracy != null  ? parseFloat((s.features.accuracy * 100).toFixed(1)) : null,
+      riskScore: s.riskScore  ?? null,
+      riskLevel: s.riskLevel  ?? null,
+      sac:       s.sac != null       ? parseFloat((s.sac).toFixed(4))       : null,
+      ies:       s.ies != null       ? parseFloat((s.ies).toFixed(2))       : null,
+      accuracy:  s.accuracy != null  ? parseFloat((s.accuracy * 100).toFixed(1)) : null,
     }));
   }, [sessions]);
+
+  // Latest accuracy: per-session (game history) OR mean_accuracy from risk history
+  const latestAccuracy = useMemo(() => {
+    const perSession = sessions[0]?.accuracy;
+    if (perSession != null) return perSession;
+    return riskHistory?.history?.[0]?.features_used?.mean_accuracy ?? null;
+  }, [sessions, riskHistory]);
 
   // Radar data: current vs "healthy baseline"
   const radarData = useMemo(() => {
     if (!sessions.length) return [];
     const latest = sessions[0];
-    const acc = (latest.features?.accuracy ?? 0) * 100;
-    const sac = Math.min(100, (latest.features?.sac ?? 0) * 500);
-    const ies = Math.max(0, 100 - Math.min(100, (latest.features?.ies ?? 10) * 5));
-    const risk = 100 - (latest.prediction?.riskScore0_100 ?? 50);
+    const accVal = latest.accuracy ?? riskHistory?.history?.[0]?.features_used?.mean_accuracy ?? 0;
+    const acc = accVal * 100;
+    const sac = Math.min(100, (latest.sac ?? 0) * 500);
+    const ies = Math.max(0, 100 - Math.min(100, (latest.ies ?? 10) * 5));
+    const risk = 100 - (latest.riskScore ?? 50);
     return [
       { metric: 'Accuracy',     patient: Math.round(acc),  healthy: 85 },
       { metric: 'Speed (SAC)',  patient: Math.round(sac),  healthy: 80 },
@@ -145,18 +151,18 @@ const GameModule = () => {
       { metric: 'Wellness',     patient: Math.round(risk), healthy: 90 },
       { metric: 'Consistency',  patient: Math.round(Math.random() * 20 + 60), healthy: 80 },
     ];
-  }, [sessions]);
+  }, [sessions, riskHistory]);
 
-  // â”€â”€ Summary values â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  //  Summary values       â”€â”€â”€â”€
   const hasData        = sessions.length > 0 || (stats && stats.totalSessions > 0);
   const totalSessions  = stats?.totalSessions    ?? sessions.length;
   const avgSAC         = stats?.avgSAC           ?? null;
-  const currentRisk    = stats?.currentRiskLevel ?? sessions[0]?.prediction?.riskLevel ?? '--';
-  const recentRiskScore= stats?.recentRiskScore  ?? sessions[0]?.prediction?.riskScore0_100 ?? null;
+  const currentRisk    = stats?.currentRiskLevel ?? sessions[0]?.riskLevel ?? '--';
+  const recentRiskScore= stats?.recentRiskScore  ?? sessions[0]?.riskScore ?? null;
   const lastDate       = stats?.lastSessionDate  ?? sessions[0]?.timestamp ?? null;
   const wellnessScore  = recentRiskScore != null ? Math.round(Math.max(0, Math.min(100, 100 - recentRiskScore))) : null;
 
-  // â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  //  Loading           
   if (loading) return (
     <Layout>
       <div className="flex flex-col items-center justify-center h-64 text-secondary gap-3">
@@ -179,7 +185,7 @@ const GameModule = () => {
     <Layout>
       <div className="space-y-6 animate-fade-in">
 
-        {/* â”€â”€ Page header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/*  Page header   â”€ */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold text-deepBlue mb-1">Cognitive Games Activity</h1>
@@ -207,7 +213,7 @@ const GameModule = () => {
           </div>
         </div>
 
-        {/* â”€â”€ Risk assessment banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/*  Risk assessment banner         */}
         {riskAssessment && (
           <Card className={`border-2 ${riskBgCls(riskAssessment.prediction?.label)}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -235,7 +241,7 @@ const GameModule = () => {
           <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm">{riskError}</div>
         )}
 
-        {/* â”€â”€ Patient strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/*  Patient strip    */}
         {patient && (
           <Card className="bg-primary/5 flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -251,7 +257,7 @@ const GameModule = () => {
           </Card>
         )}
 
-        {/* â”€â”€ No data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/*  No data       â”€ */}
         {!hasData && (
           <Card className="text-center py-16">
             <Gamepad2 className="w-14 h-14 text-gray-200 mx-auto mb-4" />
@@ -262,7 +268,7 @@ const GameModule = () => {
 
         {hasData && (
           <>
-            {/* â”€â”€ KPI cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/*  KPI cards   â”€ */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: 'Total Sessions',  value: totalSessions, sub: null,               icon: Gamepad2, color: 'text-primary',   bg: 'from-sky-50'     },
@@ -287,7 +293,7 @@ const GameModule = () => {
               ))}
             </div>
 
-            {/* â”€â”€ Chart selector tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/*  Chart selector tabs         */}
             <Card>
               {/* Tab bar */}
               <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -321,7 +327,7 @@ const GameModule = () => {
                 </div>
               ) : (
                 <>
-                  {/* â”€â”€ RISK SCORE chart â”€â”€ */}
+                  {/*  RISK SCORE chart  */}
                   {activeChart === 'risk' && (
                     <ResponsiveContainer width="100%" height={280}>
                       <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
@@ -348,7 +354,7 @@ const GameModule = () => {
                     </ResponsiveContainer>
                   )}
 
-                  {/* â”€â”€ ACCURACY chart â”€â”€ */}
+                  {/*  ACCURACY chart  */}
                   {activeChart === 'accuracy' && (
                     <ResponsiveContainer width="100%" height={280}>
                       <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
@@ -374,7 +380,7 @@ const GameModule = () => {
                     </ResponsiveContainer>
                   )}
 
-                  {/* â”€â”€ SAC chart â”€â”€ */}
+                  {/*  SAC chart  */}
                   {activeChart === 'sac' && (
                     <ResponsiveContainer width="100%" height={280}>
                       <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
@@ -399,7 +405,7 @@ const GameModule = () => {
                     </ResponsiveContainer>
                   )}
 
-                  {/* â”€â”€ IES chart (lower = better) â”€â”€ */}
+                  {/*  IES chart (lower = better)  */}
                   {activeChart === 'ies' && (
                     <ResponsiveContainer width="100%" height={280}>
                       <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
@@ -439,7 +445,7 @@ const GameModule = () => {
               )}
             </Card>
 
-            {/* â”€â”€ Radar: cognitive profile vs healthy baseline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/*  Radar: cognitive profile vs healthy baseline     â”€ */}
             {sessions.length > 0 && (
               <Card>
                 <div className="mb-4">
@@ -463,10 +469,10 @@ const GameModule = () => {
                   {/* Latest session metrics panel */}
                   <div className="space-y-3">
                     {[
-                      { label: 'Accuracy',   value: `${fmt(sessions[0]?.features?.accuracy != null ? sessions[0].features.accuracy * 100 : null, 1)}%`, color: C.green,   icon: Target },
-                      { label: 'SAC Score',  value: fmt(sessions[0]?.features?.sac, 4),  color: C.primary, icon: TrendingUp },
-                      { label: 'IES Score',  value: fmt(sessions[0]?.features?.ies, 2),  color: C.orange,  icon: Zap        },
-                      { label: 'Risk Level', value: sessions[0]?.prediction?.riskLevel ?? '--', color: riskHex(sessions[0]?.prediction?.riskLevel), icon: Brain },
+                      { label: 'Accuracy',   value: `${fmt(latestAccuracy != null ? latestAccuracy * 100 : null, 1)}%`, color: C.green,   icon: Target },
+                      { label: 'SAC Score',  value: fmt(sessions[0]?.sac, 4),  color: C.primary, icon: TrendingUp },
+                      { label: 'IES Score',  value: fmt(sessions[0]?.ies, 2),  color: C.orange,  icon: Zap        },
+                      { label: 'Risk Level', value: sessions[0]?.riskLevel ?? '--', color: riskHex(sessions[0]?.riskLevel), icon: Brain },
                     ].map(({ label, value, color, icon: Icon }) => (
                       <div key={label} className="flex items-center justify-between px-4 py-3 rounded-xl bg-secondaryBg/60">
                         <div className="flex items-center gap-2.5">
@@ -483,7 +489,7 @@ const GameModule = () => {
               </Card>
             )}
 
-            {/* â”€â”€ Recent sessions list (compact) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/*  Recent sessions list (compact)     */}
             <Card>
               <h3 className="text-lg font-bold text-deepBlue mb-4">Session History</h3>
               {sessions.length === 0 ? (
@@ -491,11 +497,11 @@ const GameModule = () => {
               ) : (
                 <div className="space-y-2">
                   {sessions.map((s, idx) => {
-                    const risk   = s.prediction?.riskLevel      ?? '--';
-                    const rScore = s.prediction?.riskScore0_100 ?? null;
-                    const acc    = s.features?.accuracy         ?? null;
-                    const sac    = s.features?.sac              ?? null;
-                    const ies    = s.features?.ies              ?? null;
+                    const risk   = s.riskLevel  ?? '--';
+                    const rScore = s.riskScore  ?? null;
+                    const acc    = s.accuracy   ?? null;
+                    const sac    = s.sac        ?? null;
+                    const ies    = s.ies        ?? null;
                     return (
                       <div key={s.sessionId || idx} className={`p-3 rounded-xl border ${riskBgCls(risk)} flex flex-wrap items-center gap-4`}>
                         <div className="flex-1 min-w-[140px]">
@@ -529,7 +535,7 @@ const GameModule = () => {
               )}
             </Card>
 
-            {/* â”€â”€ Risk history (from /risk/history) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/*  Risk history (from /risk/history)          */}
             {riskHistory?.total_predictions > 0 && (
               <Card>
                 <div className="flex items-center justify-between mb-4">
@@ -589,7 +595,7 @@ const GameModule = () => {
               </Card>
             )}
 
-            {/* â”€â”€ Cognitive insight footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/*  Cognitive insight footer     */}
             <Card className="bg-gradient-to-br from-sky-50 to-blue-50/40">
               <h3 className="text-base font-bold text-deepBlue mb-3">How to read these scores</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
