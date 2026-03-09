@@ -747,3 +747,20 @@ export const getRiskHistory = async (userId) => {
 
   return handleResponse(response);
 };
+
+/**
+ * Get daily final scores for a patient
+ * @param {string} patientId - Patient user ID
+ * @param {number} days - Number of days to retrieve (default: 7)
+ */
+export const getDailyScores = async (patientId, days = 7) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/daily-scores/${patientId}?days=${days}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    }
+  });
+
+  return handleResponse(response);
+};

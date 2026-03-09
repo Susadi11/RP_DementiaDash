@@ -38,7 +38,8 @@ import {
   getAdherenceRiskScore,
   getPatientReminders,
   getUserRemindersAll,
-  getCaregiverDashboardReminders
+  getCaregiverDashboardReminders,
+  getDailyScores
 } from '../services/api';
 import generateWeeklyPDF from '../utils/generateWeeklyPDF';
 
@@ -63,6 +64,7 @@ const ReminderDashboard = () => {
   const [groupedReminders, setGroupedReminders] = useState(null);
   const [snoozedReminders, setSnoozedReminders] = useState([]);
   const [adherenceRisk, setAdherenceRisk] = useState(null);
+  const [dailyScores, setDailyScores] = useState(null);
   const [allReminders, setAllReminders] = useState([]);
   const [reminderFilter, setReminderFilter] = useState('all'); // all, active, completed, missed, snoozed
 
@@ -101,7 +103,7 @@ const ReminderDashboard = () => {
       setError(null);
 
       // Fetch all data in parallel
-      const [dashboardData, missedData, activityData, alertsData, groupedData, snoozedData, adherenceData, allData, dashboardRemindersData] = await Promise.all([
+      const [dashboardData, missedData, activityData, alertsData, groupedData, snoozedData, adherenceData, allData, dashboardRemindersData, dailyScoresData] = await Promise.all([
         getPatientDashboard(selectedPatient),
         getMissedReminders(selectedPatient, 7).catch(() => ({ success: false })),
         getActivityCompletion(selectedPatient, 7).catch(() => ({ success: false })),
@@ -110,13 +112,15 @@ const ReminderDashboard = () => {
         getSnoozedReminders(selectedPatient, 7).catch(() => null),
         getAdherenceRiskScore(selectedPatient, 30).catch(() => null),
         getUserRemindersAll(selectedPatient).catch(() => null),   // real reminders endpoint
-        getCaregiverDashboardReminders(7).catch(() => null)       // NEW — all patients grouped
+        getCaregiverDashboardReminders(7).catch(() => null),       // NEW — all patients grouped
+        getDailyScores(selectedPatient, 7).catch(() => null)      // Daily final scores
       ]);
 
       if (dashboardData.success) setDashboard(dashboardData);
       if (missedData.success) setMissedReminders(missedData.missed_reminders || []);
       if (activityData.success) setActivityCompletion(activityData.activities || []);
       if (alertsData.success) setAlerts(alertsData.alerts || []);
+      if (dailyScoresData?.success) setDailyScores(dailyScoresData);
 
       // ── Grouped reminders ───────────────────────────────────────────────
       // Primary source: /grouped endpoint (one call, all statuses)
@@ -355,6 +359,34 @@ const ReminderDashboard = () => {
           </Card>
         )}
 
+        {/* Missed Medication Banner — shown when there are missed reminders */}
+        {missedReminders.length > 0 && (
+          <div
+            className="bg-red-600 text-white rounded-lg px-4 py-3 flex items-center justify-between shadow-md"
+            role="alert"
+          >
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
+              <XCircle className="w-5 h-5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="font-semibold text-sm">
+                  {missedReminders.length} Medication{missedReminders.length > 1 ? 's' : ''} Missed
+                </span>
+                <span className="text-sm opacity-90 ml-2">
+                  — {missedReminders.slice(0, 3).map(r => r.title || r.medication_name || r.description || 'Reminder').join(', ')}
+                  {missedReminders.length > 3 ? ` and ${missedReminders.length - 3} more` : ''}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab('reminders')}
+              className="flex items-center space-x-1 bg-red-700 hover:bg-red-800 text-white text-xs font-medium px-3 py-1.5 rounded transition-colors ml-4 flex-shrink-0"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              <span>View Details</span>
+            </button>
+          </div>
+        )}
+
         {/* Caregiver Alert Banner — shown when urgent unresolved medication alerts exist */}
         <ReminderAlertBanner
           alerts={alerts}
@@ -450,50 +482,102 @@ const ReminderDashboard = () => {
               );
             })()}
 
-            {/* Cognitive Risk & Recommendations */}
-            {dashboard?.cognitive_risk && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Cognitive Risk */}
-                <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Cognitive Risk Assessment
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-4xl font-bold text-purple-700">
-                        {(dashboard.cognitive_risk.avg_cognitive_risk * 100).toFixed(0)}%
-                      </div>
-                      <div className={`mt-2 px-3 py-1 inline-block rounded-full text-sm font-semibold ${
-                        dashboard.cognitive_risk.risk_level === 'low' ? 'bg-green-100 text-green-800' :
-                        dashboard.cognitive_risk.risk_level === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
-                        dashboard.cognitive_risk.risk_level === 'high' ? 'bg-orange-100 text-orange-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {dashboard.cognitive_risk.risk_level.toUpperCase()} RISK
-                      </div>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Trend: <span className="font-medium">{dashboard.cognitive_risk.confusion_trend}</span>
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+            {/* Daily Final Score & Recommendations */}
+            {(() => {
+              // Get latest daily score or dashboard cognitive risk as fallback
+              const latestDaily = dailyScores?.daily_breakdown?.[0];
+              const summary = dailyScores?.summary;
+              
+              const finalScore = latestDaily?.final_score ?? (dashboard?.cognitive_risk ? Math.round(0.6 * (100 - (dashboard.cognitive_risk.avg_cognitive_risk * 100)) + 0.4 * 50) : null);
+              const adherenceScore = latestDaily?.adherence_score ?? (summary?.avg_adherence_score ?? null);
+              const cognitiveRisk = latestDaily?.cognitive_risk_score ?? (dashboard?.cognitive_risk?.avg_cognitive_risk ? Math.round(dashboard.cognitive_risk.avg_cognitive_risk * 100) : null);
+              const trend = summary?.trend ?? dashboard?.cognitive_risk?.confusion_trend ?? null;
+              
+              if (finalScore === null && !dashboard?.cognitive_risk) return null;
 
-                {/* Recommendations */}
-                <Card className="bg-gradient-to-br from-blue-50 to-cyan-50">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    AI Recommendations
-                  </h3>
-                  <div className="space-y-2">
-                    {dashboard.recommendations?.map((rec, index) => (
-                      <div key={index} className="flex items-start space-x-2 p-3 bg-white rounded-lg">
-                        <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-gray-700">{rec}</p>
+              // Determine score quality color
+              const scoreColor = finalScore >= 75 
+                ? 'text-green-700' 
+                : finalScore >= 50 
+                ? 'text-yellow-700' 
+                : 'text-red-700';
+              
+              const scoreBg = finalScore >= 75 
+                ? 'from-green-50 to-emerald-50' 
+                : finalScore >= 50 
+                ? 'from-yellow-50 to-orange-50' 
+                : 'from-red-50 to-pink-50';
+
+              return (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Daily Final Score */}
+                  <Card className={`bg-gradient-to-br ${scoreBg}`}>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Daily Wellness Score
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className={`text-5xl font-bold ${scoreColor}`}>
+                            {finalScore !== null ? finalScore : '—'}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-2">
+                            {latestDaily?.day_of_week ? `${latestDaily.day_of_week} (Today)` : 'Latest Score'}
+                          </p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            )}
+                      
+                      {/* Score Breakdown */}
+                      <div className="pt-2 border-t border-gray-200 space-y-2">
+                        {adherenceScore !== null && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600">Adherence</span>
+                            <span className="text-sm font-bold text-gray-900">{adherenceScore}%</span>
+                          </div>
+                        )}
+                        {cognitiveRisk !== null && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600">Cognitive Risk</span>
+                            <span className="text-sm font-bold text-gray-900">{cognitiveRisk}%</span>
+                          </div>
+                        )}
+                        {trend && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600">Trend</span>
+                            <span className={`text-sm font-semibold px-2 py-1 rounded ${
+                              trend === 'improving' ? 'bg-green-100 text-green-800' :
+                              trend === 'declining' ? 'bg-red-100 text-red-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {trend.charAt(0).toUpperCase() + trend.slice(1)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Recommendations */}
+                  <Card className="bg-gradient-to-br from-blue-50 to-cyan-50">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      AI Recommendations
+                    </h3>
+                    <div className="space-y-2">
+                      {dashboard?.recommendations && dashboard.recommendations.length > 0 ? (
+                        dashboard.recommendations.map((rec, index) => (
+                          <div key={index} className="flex items-start space-x-2 p-3 bg-white rounded-lg">
+                            <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-gray-700">{rec}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">No recommendations available</p>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              );
+            })()}
 
             {/* Missed Reminders & Activity Completion */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
