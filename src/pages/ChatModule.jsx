@@ -8,7 +8,7 @@ import {
 import Layout from '../components/layout/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { getPatientSessions, getWeeklyRisk, getLinkedPatientsDetails } from '../services/api';
+import { getPatientSessions, getWeeklyRisk, getLinkedPatientsDetails, getCrisisAlerts, acknowledgeCrisisAlert } from '../services/api';
 import jsPDF from 'jspdf';
 
 // Parameter explanations in simple terms for caregivers with professional icons
@@ -190,6 +190,7 @@ const ChatModule = () => {
   const [expandedSessions, setExpandedSessions] = useState({});
   const [weeklyRisk, setWeeklyRisk] = useState(null);
   const [patient, setPatient] = useState(null);
+  const [crisisAlerts, setCrisisAlerts] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(() => {
     const now = new Date();
     const dayOfWeek = now.getDay();
@@ -197,6 +198,24 @@ const ChatModule = () => {
     const monday = new Date(now.setDate(diff));
     return monday.toISOString().split('T')[0];
   });
+
+  const fetchCrisisAlerts = async (userId) => {
+    try {
+      const data = await getCrisisAlerts(userId);
+      if (data.success) setCrisisAlerts(data.alerts || []);
+    } catch (e) {
+      console.log('Crisis alerts fetch failed:', e);
+    }
+  };
+
+  const handleAcknowledgeAlert = async (alertId) => {
+    try {
+      await acknowledgeCrisisAlert(alertId);
+      setCrisisAlerts(prev => prev.filter(a => a._id !== alertId));
+    } catch (e) {
+      console.error('Failed to acknowledge alert:', e);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -208,6 +227,11 @@ const ChatModule = () => {
           setPatient(patientsData.patients[0]);
 
           const userId = patientsData.patients[0].user_id;
+
+          // Fetch crisis alerts and poll every 30s
+          fetchCrisisAlerts(userId);
+          const crisisInterval = setInterval(() => fetchCrisisAlerts(userId), 30000);
+          setTimeout(() => clearInterval(crisisInterval), 300000); // stop after 5 min
 
           const weekStart = new Date(selectedWeek);
           const weekEnd = new Date(weekStart);
@@ -522,6 +546,34 @@ const ChatModule = () => {
             <span>Download Report</span>
           </Button>
         </div>
+
+        {/* Crisis Alert Banner */}
+        {crisisAlerts.length > 0 && (
+          <div className="space-y-2">
+            {crisisAlerts.map((alert) => (
+              <div key={alert._id} className="flex items-start justify-between gap-4 bg-red-50 border border-red-300 rounded-xl px-4 py-3 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-800">Crisis Alert — Immediate Attention Required</p>
+                    <p className="text-sm text-red-700 mt-0.5">
+                      Patient said: <span className="italic">"{alert.message_preview}"</span>
+                    </p>
+                    <p className="text-xs text-red-500 mt-1">
+                      {new Date(alert.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleAcknowledgeAlert(alert._id)}
+                  className="shrink-0 text-xs font-medium text-red-700 border border-red-300 rounded-lg px-3 py-1.5 hover:bg-red-100 transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Patient Info */}
         {patient && (
