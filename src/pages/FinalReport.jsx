@@ -371,7 +371,7 @@ const FinalReport = () => {
                 <div className="flex justify-between"><span className="text-secondary">Chats</span><span className="font-bold">{reportData.chat.totalSessions}</span></div>
                 <div className="flex justify-between"><span className="text-secondary">Days Active</span><span className="font-bold">{reportData.chat.activeDays}/7</span></div>
                 <div className="flex justify-between"><span className="text-secondary">Status</span><span className="font-bold">{friendlyRisk(reportData.chat.riskLevel)}</span></div>
-                <div className="flex justify-between"><span className="text-secondary">Messages</span><span className="font-bold">{reportData.chat.totalMessages}</span></div>
+
                 {Object.keys(reportData.chat.parameterConcerns).length > 0 && (
                   <div className="p-3 bg-red-50 rounded-lg border border-red-100 mt-2">
                     <p className="text-xs font-semibold text-red-700 mb-2">Things we noticed</p>
