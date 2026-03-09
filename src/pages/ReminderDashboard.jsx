@@ -21,6 +21,7 @@ import Button from '../components/common/Button';
 import ActivityProgressBar from '../components/caregiver/ActivityProgressBar';
 import MissedReminderCard from '../components/caregiver/MissedReminderCard';
 import AlertCard from '../components/caregiver/AlertCard';
+import ReminderAlertBanner from '../components/caregiver/ReminderAlertBanner';
 import MedicationSchedule from '../components/caregiver/MedicationSchedule';
 import BehaviorAnalysis from '../components/caregiver/BehaviorAnalysis';
 import {
@@ -353,6 +354,12 @@ const ReminderDashboard = () => {
             </select>
           </Card>
         )}
+
+        {/* Caregiver Alert Banner — shown when urgent unresolved medication alerts exist */}
+        <ReminderAlertBanner
+          alerts={alerts}
+          onViewAlerts={() => setActiveTab('alerts')}
+        />
 
         {/* Tabs */}
         <div className="border-b border-gray-200">
