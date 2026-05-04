@@ -1,34 +1,3 @@
-/**
- * Weekly Report Service
- * 
- * Fetches REAL data from all 4 components and calculates normalized + weighted scores.
- * 
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  SCORING LOGIC                                                          │
- * │                                                                          │
- * │  1. Chat Score (weight 0.30)                                            │
- * │     Source: /api/detection/weekly-risk + /api/detection/sessions/{id}    │
- * │     Logic : (1 - avg_risk_score) × 100  → lower risk = higher score     │
- * │                                                                          │
- * │  2. MMSE Score (weight 0.30)                                            │
- * │     Source: /api/mmse/user/{id}                                         │
- * │     Logic : (latest_score / 30) × 100   → e.g. 24/30 = 80             │
- * │                                                                          │
- * │  3. Game Score (weight 0.20)                                            │
- * │     Source: /game/stats/{id}                                            │
- * │     Logic : (1 - riskScore/100) × 100   → lower game risk = higher     │
- * │                                                                          │
- * │  4. Reminder Score (weight 0.20)                                        │
- * │     Source: /api/caregiver/dashboard/{id}                               │
- * │     Logic : compliance_rate (already 0-100%)                            │
- * │                                                                          │
- * │  Overall = chat×0.30 + mmse×0.30 + game×0.20 + reminder×0.20          │
- * │                                                                          │
- * │  Weights reflect clinical importance:                                   │
- * │  - Conversational AI + MMSE are primary dementia indicators             │
- * │  - Game performance + reminders are secondary behavioral indicators     │
- * └──────────────────────────────────────────────────────────────────────────┘
- */
 
 import {
   getPatientSessions,
@@ -42,7 +11,6 @@ import {
   getUserRemindersAll,
 } from './api';
 
-// ── Weights for final score ────────────────────────────────────────────────
 const WEIGHTS = {
   chat: 0.30,
   mmse: 0.30,
@@ -50,7 +18,6 @@ const WEIGHTS = {
   reminder: 0.20,
 };
 
-// ── Helper: get Monday of current week ─────────────────────────────────────
 const getWeekStart = () => {
   const now = new Date();
   const day = now.getDay();
@@ -64,7 +31,7 @@ const getWeekEnd = () => {
   return now.toISOString().split('T')[0];
 };
 
-// ── 1. Fetch Chat / Conversational AI Data ──────────────────────────────────
+// ── 1. Chat / Conversational AI ─────────────────────────────────────────────
 async function fetchChatData(patientId) {
   const weekStart = getWeekStart();
   const weekEnd = getWeekEnd();
@@ -78,30 +45,22 @@ async function fetchChatData(patientId) {
     const sessions = sessionsRes?.sessions || sessionsRes || [];
     const sessionList = Array.isArray(sessions) ? sessions : [];
 
-    // Calculate average risk from sessions
     let avgRisk = 0;
     if (sessionList.length > 0) {
       const totalRisk = sessionList.reduce((sum, s) => sum + (s.session_raw_score || 0), 0);
-      avgRisk = totalRisk / sessionList.length / 36; // normalize to 0-1 (max raw score is 36)
+      avgRisk = totalRisk / sessionList.length / 36;
     }
 
-    // Weekly risk from dedicated endpoint
     const weeklyRiskScore = weeklyRiskRes?.final_weekly_risk || null;
     const riskLevel = weeklyRiskRes?.risk_level || 'N/A';
-
-    // Use weekly risk if available, else calculate from sessions
     const normalizedRisk = weeklyRiskScore !== null ? weeklyRiskScore / 100 : avgRisk;
-
-    // Chat score: lower risk = higher score
     const chatScore = Math.round(Math.max(0, Math.min(100, (1 - normalizedRisk) * 100)));
 
-    // Count sessions by day for active days
     const activeDays = new Set(sessionList.map(s => {
       const d = new Date(s.created_at || s.timestamp || s.session_date);
       return d.toISOString().split('T')[0];
     })).size;
 
-    // Get mood/concern parameters
     const parameterConcerns = {};
     if (sessionList.length > 0) {
       const paramKeys = [
@@ -112,9 +71,7 @@ async function fetchChatData(patientId) {
       ];
       paramKeys.forEach(key => {
         const avg = sessionList.reduce((sum, s) => sum + (s[key] || 0), 0) / sessionList.length;
-        if (avg >= 1.5) {
-          parameterConcerns[key] = Math.round(avg * 10) / 10;
-        }
+        if (avg >= 1.5) parameterConcerns[key] = Math.round(avg * 10) / 10;
       });
     }
 
@@ -134,51 +91,30 @@ async function fetchChatData(patientId) {
   } catch (err) {
     console.error('Failed to fetch chat data:', err);
     return {
-      score: null,
-      totalSessions: 0,
-      activeDays: 0,
-      avgRiskScore: 0,
-      riskLevel: 'N/A',
-      weeklyRiskScore: null,
-      totalMessages: 0,
-      parameterConcerns: {},
-      hasData: false,
-      interpretation: null,
-      recommendations: [],
+      score: null, totalSessions: 0, activeDays: 0, avgRiskScore: 0,
+      riskLevel: 'N/A', weeklyRiskScore: null, totalMessages: 0,
+      parameterConcerns: {}, hasData: false, interpretation: null, recommendations: [],
     };
   }
 }
 
-// ── 2. Fetch MMSE Data ──────────────────────────────────────────────────────
+// ── 2. MMSE ─────────────────────────────────────────────────────────────────
 async function fetchMMSEData(patientId) {
   try {
     const res = await getPatientAssessmentsMMSE(patientId);
 
-    // Handle various response formats
     let assessments = [];
-    if (Array.isArray(res)) {
-      assessments = res;
-    } else if (res?.assessments) {
-      assessments = res.assessments;
-    } else if (res?.tests) {
-      assessments = res.tests;
-    }
+    if (Array.isArray(res)) assessments = res;
+    else if (res?.assessments) assessments = res.assessments;
+    else if (res?.tests) assessments = res.tests;
 
     if (assessments.length === 0) {
       return {
-        score: null,
-        latestScore: null,
-        totalTests: 0,
-        hasData: false,
-        trend: 'N/A',
-        weekChange: 0,
-        breakdown: [],
-        scoreHistory: [],
-        lastTestDate: null,
+        score: null, latestScore: null, totalTests: 0, hasData: false,
+        trend: 'N/A', weekChange: 0, breakdown: [], scoreHistory: [], lastTestDate: null,
       };
     }
 
-    // Sort by date descending
     assessments.sort((a, b) => {
       const dateA = new Date(a.assessment_date || a.completed_at || a.date || a.created_at || 0);
       const dateB = new Date(b.assessment_date || b.completed_at || b.date || b.created_at || 0);
@@ -187,35 +123,28 @@ async function fetchMMSEData(patientId) {
 
     const latest = assessments[0];
 
-    // Calculate total score
     let latestScore = latest.total_score || latest.score || latest.totalScore || latest.result;
     if (latestScore === null || latestScore === undefined) {
-      // Try summing questions
       if (latest.questions) {
         latestScore = latest.questions.reduce((acc, q) => acc + (q.question_score ?? q.score ?? q.result ?? 0), 0);
       }
     }
     latestScore = latestScore || 0;
 
-    // MMSE score normalized to 0-100
     const mmseScore = Math.round(Math.max(0, Math.min(100, (latestScore / 30) * 100)));
 
-    // Get score history (last 4)
     const scoreHistory = assessments.slice(0, 4).reverse().map(a => {
       let s = a.total_score || a.score || a.totalScore || a.result || 0;
-      if (!s && a.questions) {
-        s = a.questions.reduce((acc, q) => acc + (q.question_score ?? q.score ?? 0), 0);
-      }
+      if (!s && a.questions) s = a.questions.reduce((acc, q) => acc + (q.question_score ?? q.score ?? 0), 0);
       return s;
     });
 
-    // Calculate week change
-    const weekChange = scoreHistory.length >= 2 ? scoreHistory[scoreHistory.length - 1] - scoreHistory[scoreHistory.length - 2] : 0;
+    const weekChange = scoreHistory.length >= 2
+      ? scoreHistory[scoreHistory.length - 1] - scoreHistory[scoreHistory.length - 2]
+      : 0;
 
-    // Breakdown from latest assessment
     let breakdown = [];
     if (latest.questions) {
-      // Group questions by category
       const categories = {};
       latest.questions.forEach(q => {
         const cat = q.category || q.section || 'General';
@@ -223,14 +152,9 @@ async function fetchMMSEData(patientId) {
         categories[cat].score += (q.question_score ?? q.score ?? 0);
         categories[cat].max += (q.max_score ?? q.max ?? 1);
       });
-      breakdown = Object.entries(categories).map(([name, data]) => ({
-        name,
-        score: data.score,
-        max: data.max,
-      }));
+      breakdown = Object.entries(categories).map(([name, data]) => ({ name, score: data.score, max: data.max }));
     }
 
-    // Trend
     let trend = 'stable';
     if (scoreHistory.length >= 2) {
       const diff = scoreHistory[scoreHistory.length - 1] - scoreHistory[0];
@@ -239,34 +163,21 @@ async function fetchMMSEData(patientId) {
     }
 
     return {
-      score: mmseScore,
-      latestScore,
-      totalTests: assessments.length,
-      hasData: true,
-      trend,
-      weekChange,
-      breakdown,
-      scoreHistory,
+      score: mmseScore, latestScore, totalTests: assessments.length, hasData: true,
+      trend, weekChange, breakdown, scoreHistory,
       lastTestDate: latest.assessment_date || latest.completed_at || latest.date || null,
       status: latestScore >= 24 ? 'Normal' : latestScore >= 18 ? 'Mild Impairment' : 'Moderate Impairment',
     };
   } catch (err) {
     console.error('Failed to fetch MMSE data:', err);
     return {
-      score: null,
-      latestScore: null,
-      totalTests: 0,
-      hasData: false,
-      trend: 'N/A',
-      weekChange: 0,
-      breakdown: [],
-      scoreHistory: [],
-      lastTestDate: null,
+      score: null, latestScore: null, totalTests: 0, hasData: false,
+      trend: 'N/A', weekChange: 0, breakdown: [], scoreHistory: [], lastTestDate: null,
     };
   }
 }
 
-// ── 3. Fetch Game Data ──────────────────────────────────────────────────────
+// ── 3. Game ──────────────────────────────────────────────────────────────────
 async function fetchGameData(patientId) {
   try {
     const [statsRes, historyRes] = await Promise.all([
@@ -276,14 +187,8 @@ async function fetchGameData(patientId) {
 
     if (!statsRes && !historyRes) {
       return {
-        score: null,
-        totalSessions: 0,
-        hasData: false,
-        avgSAC: 0,
-        avgIES: 0,
-        currentRiskLevel: 'N/A',
-        recentRiskScore: 0,
-        sessions: [],
+        score: null, totalSessions: 0, hasData: false,
+        avgSAC: 0, avgIES: 0, currentRiskLevel: 'N/A', recentRiskScore: 0, sessions: [],
       };
     }
 
@@ -293,12 +198,10 @@ async function fetchGameData(patientId) {
     const currentRiskLevel = statsRes?.currentRiskLevel || 'N/A';
     const recentRiskScore = statsRes?.recentRiskScore || 0;
 
-    // Game score: lower risk = higher score. Null when no sessions (exclude from overall).
     const gameScore = totalSessions > 0
       ? Math.round(Math.max(0, Math.min(100, 100 - recentRiskScore)))
       : null;
 
-    // Process history for display
     const sessions = [];
     if (historyRes?.sessions) {
       historyRes.sessions.slice(0, 5).forEach(s => {
@@ -313,35 +216,24 @@ async function fetchGameData(patientId) {
     }
 
     return {
-      score: gameScore,
-      totalSessions,
-      hasData: totalSessions > 0,
+      score: gameScore, totalSessions, hasData: totalSessions > 0,
       avgSAC: Math.round(avgSAC * 10000) / 10000,
       avgIES: Math.round(avgIES * 100) / 100,
-      currentRiskLevel,
-      recentRiskScore: Math.round(recentRiskScore),
-      sessions,
-      lastSessionDate: statsRes?.lastSessionDate || null,
+      currentRiskLevel, recentRiskScore: Math.round(recentRiskScore),
+      sessions, lastSessionDate: statsRes?.lastSessionDate || null,
     };
   } catch (err) {
     console.error('Failed to fetch game data:', err);
     return {
-      score: null,
-      totalSessions: 0,
-      hasData: false,
-      avgSAC: 0,
-      avgIES: 0,
-      currentRiskLevel: 'N/A',
-      recentRiskScore: 0,
-      sessions: [],
+      score: null, totalSessions: 0, hasData: false,
+      avgSAC: 0, avgIES: 0, currentRiskLevel: 'N/A', recentRiskScore: 0, sessions: [],
     };
   }
 }
 
-// ── 4. Fetch Reminder Data ──────────────────────────────────────────────────
+// ── 4. Reminder ──────────────────────────────────────────────────────────────
 async function fetchReminderData(patientId) {
   try {
-    // Fetch from multiple sources in parallel
     const [dashRes, adherenceRes, activityRes, rawRemindersRes] = await Promise.all([
       getPatientDashboard(patientId).catch(() => null),
       getAdherenceRiskScore(patientId, 7).catch(() => null),
@@ -349,7 +241,6 @@ async function fetchReminderData(patientId) {
       getUserRemindersAll(patientId).catch(() => null),
     ]);
 
-    // ── Try the caregiver dashboard overview first ──
     const overview = dashRes?.reminder_overview || {};
     let complianceRate = overview.compliance_rate || 0;
     let completed = overview.completed || 0;
@@ -358,14 +249,12 @@ async function fetchReminderData(patientId) {
     let total = overview.total || 0;
     let weekChange = overview.week_change || '0%';
 
-    // ── Fallback: calculate from raw reminders if dashboard returned 0 ──
     if (total === 0 && rawRemindersRes) {
       const rawList = Array.isArray(rawRemindersRes)
         ? rawRemindersRes
         : (rawRemindersRes?.reminders || rawRemindersRes?.data || rawRemindersRes?.items || []);
 
       if (rawList.length > 0) {
-        // Filter to this week's reminders
         const weekStart = new Date();
         weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (weekStart.getDay() === 0 ? -6 : 1));
         weekStart.setHours(0, 0, 0, 0);
@@ -375,15 +264,12 @@ async function fetchReminderData(patientId) {
           return st && !isNaN(st) && st >= weekStart;
         });
 
-        // If no reminders this week, use all reminders (they might not have scheduled_time)
         const list = thisWeek.length > 0 ? thisWeek : rawList;
-
         total = list.length;
         completed = list.filter(r => (r.status || '').toLowerCase() === 'completed').length;
         missed = list.filter(r => {
           const s = (r.status || '').toLowerCase();
           if (s === 'missed') return true;
-          // Active reminders whose scheduled_time has passed = effectively missed
           if (s === 'active' && r.scheduled_time) {
             const st = new Date(r.scheduled_time);
             return !isNaN(st) && st < new Date();
@@ -397,12 +283,10 @@ async function fetchReminderData(patientId) {
           const st = new Date(r.scheduled_time);
           return !isNaN(st) && st >= new Date();
         }).length;
-
         complianceRate = total > 0 ? Math.round((completed / total) * 100) : 0;
       }
     }
 
-    // Also try adherence endpoint values if still 0
     if (total === 0) {
       completed = adherenceRes?.summary?.completed || 0;
       missed = adherenceRes?.summary?.missed || 0;
@@ -410,28 +294,16 @@ async function fetchReminderData(patientId) {
       complianceRate = adherenceRes?.adherence_rate || 0;
     }
 
-    // Behavior analysis
-    const behavior = dashRes?.behavior_analysis || {};
-    const cognitiveRisk = dashRes?.cognitive_risk || {};
-
-    // Activity completion rates
-    const activities = activityRes?.categories || activityRes?.activities || [];
-
-    // Reminder score is the compliance rate (already 0-100)
-    const reminderScore = Math.round(Math.max(0, Math.min(100, complianceRate)));
+    const reminderScore = total > 0
+      ? Math.round(Math.max(0, Math.min(100, complianceRate)))
+      : null;
 
     return {
-      score: reminderScore,
-      complianceRate: Math.round(complianceRate),
-      completed,
-      missed,
-      pending,
-      total,
-      weekChange,
-      hasData: total > 0,
-      behavior,
-      cognitiveRisk,
-      activities,
+      score: reminderScore, complianceRate: Math.round(complianceRate),
+      completed, missed, pending, total, weekChange, hasData: total > 0,
+      behavior: dashRes?.behavior_analysis || {},
+      cognitiveRisk: dashRes?.cognitive_risk || {},
+      activities: activityRes?.categories || activityRes?.activities || [],
       adherenceRiskLevel: adherenceRes?.risk_level || 'N/A',
       trend: adherenceRes?.trend || 'stable',
       recommendations: dashRes?.recommendations || adherenceRes?.recommendations || [],
@@ -440,70 +312,116 @@ async function fetchReminderData(patientId) {
   } catch (err) {
     console.error('Failed to fetch reminder data:', err);
     return {
-      score: null,
-      complianceRate: 0,
-      completed: 0,
-      missed: 0,
-      pending: 0,
-      total: 0,
-      weekChange: '0%',
-      hasData: false,
-      behavior: {},
-      cognitiveRisk: {},
-      activities: [],
-      adherenceRiskLevel: 'N/A',
-      trend: 'stable',
-      recommendations: [],
-      alerts: [],
+      score: null, complianceRate: 0, completed: 0, missed: 0, pending: 0,
+      total: 0, weekChange: '0%', hasData: false, behavior: {}, cognitiveRisk: {},
+      activities: [], adherenceRiskLevel: 'N/A', trend: 'stable', recommendations: [], alerts: [],
     };
   }
 }
 
-// ── Calculate Overall Weighted Score ────────────────────────────────────────
-function calculateOverallScore(chatScore, mmseScore, gameScore, reminderScore) {
-  const scores = [
-    { score: chatScore, weight: WEIGHTS.chat },
-    { score: mmseScore, weight: WEIGHTS.mmse },
-    { score: gameScore, weight: WEIGHTS.game },
-    { score: reminderScore, weight: WEIGHTS.reminder },
-  ];
+// ── Overall Weighted Score ───────────────────────────────────────────────────
+// With MMSE:    Chat 30% + Game 25% + Reminder 25% + MMSE 20%
+// Without MMSE: Chat 35% + Game 35% + Reminder 30%
+function calculateOverallScore(chatScore, mmseScore, gameScore, reminderScore, mmseHasData) {
+  const useMMSE = mmseHasData && mmseScore !== null;
 
-  // Only use components that have real data (non-null)
-  const validScores = scores.filter(s => s.score !== null);
+  const weights = useMMSE
+    ? { chat: 0.30, game: 0.25, reminder: 0.25, mmse: 0.20 }
+    : { chat: 0.35, game: 0.35, reminder: 0.30 };
 
-  if (validScores.length === 0) return { overall: 0, componentsUsed: 0 };
+  const candidates = useMMSE
+    ? [
+        { score: chatScore,     weight: weights.chat },
+        { score: gameScore,     weight: weights.game },
+        { score: reminderScore, weight: weights.reminder },
+        { score: mmseScore,     weight: weights.mmse },
+      ]
+    : [
+        { score: chatScore,     weight: weights.chat },
+        { score: gameScore,     weight: weights.game },
+        { score: reminderScore, weight: weights.reminder },
+      ];
 
-  // Redistribute weights proportionally among available components
-  const totalWeight = validScores.reduce((sum, s) => sum + s.weight, 0);
-  const weightedSum = validScores.reduce((sum, s) => sum + (s.score * (s.weight / totalWeight)), 0);
+  const valid = candidates.filter(s => s.score !== null);
+  if (valid.length === 0) return { overall: 0, componentsUsed: 0, mmseUsedAsAnchor: false };
 
+  const totalWeight = valid.reduce((sum, s) => sum + s.weight, 0);
+  const weightedSum = valid.reduce((sum, s) => sum + s.score * (s.weight / totalWeight), 0);
+
+  return { overall: Math.round(weightedSum), componentsUsed: valid.length, mmseUsedAsAnchor: useMMSE };
+}
+
+// ── Final Dementia Risk Verdict ──────────────────────────────────────────────
+// AT RISK if 2+ flags triggered (prevents single bad day from alarming):
+//   1. Overall score ≤ 40
+//   2. Chat risk high/critical OR chat score ≤ 40
+//   3. Game score ≤ 40
+//   4. Medication compliance < 50%
+//   5. MMSE score < 20
+function calculateFinalVerdict(chat, mmse, game, reminder, overallScore) {
+  const flags = [];
+
+  if (overallScore <= 40)
+    flags.push({ key: 'overall', label: 'Overall score in high-risk zone' });
+
+  if (chat.hasData && (
+    ['high', 'critical', 'severe'].includes((chat.riskLevel || '').toLowerCase()) ||
+    chat.score <= 40
+  )) flags.push({ key: 'chat', label: 'Conversation risk is high' });
+
+  if (game.hasData && game.score !== null && game.score <= 40)
+    flags.push({ key: 'game', label: 'Brain game performance very low' });
+
+  if (reminder.hasData && reminder.complianceRate < 50)
+    flags.push({ key: 'medication', label: 'Medication compliance below 50%' });
+
+  if (mmse.hasData && mmse.latestScore !== null && mmse.latestScore < 20)
+    flags.push({ key: 'mmse', label: `Memory test score ${mmse.latestScore}/30 (impaired range)` });
+
+  const flagCount = flags.length;
+
+  if (flagCount >= 2) {
+    return {
+      verdict: 'At Risk', verdictColor: 'text-red-600',
+      verdictBg: 'bg-red-50 border-red-200', verdictIcon: 'high',
+      verdictDesc: 'Multiple areas of concern detected. Caregiver review is recommended.',
+      flags, flagCount,
+    };
+  } else if (flagCount === 1) {
+    return {
+      verdict: 'Monitoring', verdictColor: 'text-amber-600',
+      verdictBg: 'bg-amber-50 border-amber-200', verdictIcon: 'medium',
+      verdictDesc: 'One area needs attention. Continue monitoring closely.',
+      flags, flagCount,
+    };
+  }
   return {
-    overall: Math.round(weightedSum),
-    componentsUsed: validScores.length,
+    verdict: 'Stable', verdictColor: 'text-emerald-600',
+    verdictBg: 'bg-emerald-50 border-emerald-200', verdictIcon: 'low',
+    verdictDesc: 'No significant dementia risk signals detected this week.',
+    flags, flagCount,
   };
 }
 
-// ── Get Overall Rating Label ────────────────────────────────────────────────
 export function getOverallRating(score) {
-  if (score >= 85) return { label: 'Excellent', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', emoji: '🟢' };
-  if (score >= 70) return { label: 'Good', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', emoji: '🔵' };
-  if (score >= 55) return { label: 'Fair', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', emoji: '🟡' };
-  if (score >= 40) return { label: 'Needs Attention', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', emoji: '🟠' };
-  return { label: 'Critical', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', emoji: '🔴' };
+  if (score >= 85) return { label: 'Excellent',       color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', emoji: '🟢' };
+  if (score >= 70) return { label: 'Good',            color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200',    emoji: '🔵' };
+  if (score >= 55) return { label: 'Fair',            color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-200',   emoji: '🟡' };
+  if (score >= 40) return { label: 'Needs Attention', color: 'text-orange-600',  bg: 'bg-orange-50',  border: 'border-orange-200',  emoji: '🟠' };
+  if (score >= 25) return { label: 'Concern',         color: 'text-red-500',     bg: 'bg-red-50',     border: 'border-red-200',     emoji: '🔴' };
+  return              { label: 'Critical',         color: 'text-red-700',     bg: 'bg-red-100',    border: 'border-red-300',     emoji: '🔴' };
 }
 
-// ── Get Component Rating ────────────────────────────────────────────────────
 export function getComponentRating(score) {
-  if (score === null) return { label: 'No Data', color: 'text-gray-400', bg: 'bg-gray-50' };
-  if (score >= 80) return { label: 'Good', color: 'text-emerald-600', bg: 'bg-emerald-50' };
-  if (score >= 60) return { label: 'Fair', color: 'text-amber-600', bg: 'bg-amber-50' };
-  if (score >= 40) return { label: 'Attention', color: 'text-orange-600', bg: 'bg-orange-50' };
-  return { label: 'Concern', color: 'text-red-600', bg: 'bg-red-50' };
+  if (score === null) return { label: 'No Data',   color: 'text-gray-400',    bg: 'bg-gray-50' };
+  if (score >= 80)    return { label: 'Good',      color: 'text-emerald-600', bg: 'bg-emerald-50' };
+  if (score >= 60)    return { label: 'Fair',      color: 'text-amber-600',   bg: 'bg-amber-50' };
+  if (score >= 40)    return { label: 'Attention', color: 'text-orange-600',  bg: 'bg-orange-50' };
+  return                     { label: 'Concern',   color: 'text-red-600',     bg: 'bg-red-50' };
 }
 
-// ── MAIN: Fetch Complete Weekly Report ──────────────────────────────────────
+// ── Main: Fetch Complete Weekly Report ───────────────────────────────────────
 export async function fetchWeeklyReportData(patientId) {
-  // Fetch all 4 components in parallel
   const [chat, mmse, game, reminder] = await Promise.all([
     fetchChatData(patientId),
     fetchMMSEData(patientId),
@@ -511,23 +429,22 @@ export async function fetchWeeklyReportData(patientId) {
     fetchReminderData(patientId),
   ]);
 
-  // Calculate weighted overall score
-  const { overall, componentsUsed } = calculateOverallScore(
-    chat.score,
-    mmse.score,
-    game.score,
-    reminder.score
+  const { overall, componentsUsed, mmseUsedAsAnchor } = calculateOverallScore(
+    chat.hasData     ? chat.score     : null,
+    mmse.hasData     ? mmse.score     : null,
+    game.hasData     ? game.score     : null,
+    reminder.hasData ? reminder.score : null,
+    mmse.hasData,
   );
 
+  const finalVerdict = calculateFinalVerdict(chat, mmse, game, reminder, overall);
   const rating = getOverallRating(overall);
 
-  // Combine all recommendations
   const allRecommendations = [
     ...chat.recommendations,
     ...reminder.recommendations,
-  ].filter((r, i, arr) => arr.indexOf(r) === i).slice(0, 8); // deduplicate, max 8
+  ].filter((r, i, arr) => arr.indexOf(r) === i).slice(0, 8);
 
-  // Generate smart summary
   const summary = generateSummary(chat, mmse, game, reminder, overall, rating);
 
   return {
@@ -535,44 +452,28 @@ export async function fetchWeeklyReportData(patientId) {
     weekEnding: getWeekEnd(),
     weekStart: getWeekStart(),
     generatedAt: new Date().toISOString(),
-
-    // Individual component data
-    chat,
-    mmse,
-    game,
-    reminder,
-
-    // Overall scoring
-    overallScore: overall,
-    rating,
-    componentsUsed,
-
-    // Combined insights
-    recommendations: allRecommendations,
-    summary,
-
-    // Weights used (for transparency in report)
+    chat, mmse, game, reminder,
+    overallScore: overall, rating, componentsUsed, mmseUsedAsAnchor, finalVerdict,
+    recommendations: allRecommendations, summary,
     weights: WEIGHTS,
   };
 }
 
-// ── Friendly human-readable concern labels ─────────────────────────────────
 export const FRIENDLY_PARAM_NAMES = {
-  p1_semantic_incoherence: 'Unclear speech',
-  p2_repeated_questions: 'Repeating questions',
-  p3_self_correction: 'Frequent self-correction',
-  p4_low_confidence: 'Sounding unsure',
-  p5_hesitation_pauses: 'Long pauses in speech',
-  p6_vocal_tremors: 'Shaky voice',
-  p7_emotion_slip: 'Mood changes',
-  p8_slowed_speech: 'Speaking slowly',
-  p9_evening_errors: 'Evening confusion',
-  p10_in_session_decline: 'Getting tired during chat',
-  p11_memory_recall_failure: 'Trouble remembering',
-  p12_topic_avoidance: 'Avoiding certain topics',
+  p1_semantic_incoherence:  'Unclear speech',
+  p2_repeated_questions:    'Repeating questions',
+  p3_self_correction:       'Frequent self-correction',
+  p4_low_confidence:        'Sounding unsure',
+  p5_hesitation_pauses:     'Long pauses in speech',
+  p6_vocal_tremors:         'Shaky voice',
+  p7_emotion_slip:          'Mood changes',
+  p8_slowed_speech:         'Speaking slowly',
+  p9_evening_errors:        'Evening confusion',
+  p10_in_session_decline:   'Getting tired during chat',
+  p11_memory_recall_failure:'Trouble remembering',
+  p12_topic_avoidance:      'Avoiding certain topics',
 };
 
-// ── Friendly risk level labels ──────────────────────────────────────────────
 export function friendlyRisk(level) {
   if (!level || level === 'N/A') return 'Not enough data';
   const l = level.toLowerCase();
@@ -580,11 +481,9 @@ export function friendlyRisk(level) {
   if (l === 'moderate' || l === 'medium') return 'Needs some attention';
   if (l === 'high' || l === 'elevated') return 'Needs attention';
   if (l === 'critical' || l === 'severe') return 'Needs urgent attention';
-  // Return the original if we don't recognize it but capitalize nicely
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
-// ── Friendly MMSE status ────────────────────────────────────────────────────
 export function friendlyMmseStatus(score) {
   if (score === null || score === undefined) return 'No test taken';
   if (score >= 24) return 'Normal range';
@@ -593,7 +492,6 @@ export function friendlyMmseStatus(score) {
   return 'Significant difficulty';
 }
 
-// ── Friendly trend ──────────────────────────────────────────────────────────
 export function friendlyTrend(trend) {
   if (!trend || trend === 'N/A') return 'Not enough data yet';
   const t = trend.toLowerCase();
@@ -603,11 +501,9 @@ export function friendlyTrend(trend) {
   return trend;
 }
 
-// ── Generate Smart Summary Text ─────────────────────────────────────────────
 function generateSummary(chat, mmse, game, reminder, overall, rating) {
   const parts = [];
 
-  // Overall — plain language
   if (overall >= 70) {
     parts.push(`${rating.label} week overall — your loved one scored ${overall} out of 100.`);
   } else if (overall >= 50) {
@@ -616,7 +512,6 @@ function generateSummary(chat, mmse, game, reminder, overall, rating) {
     parts.push(`This week's health score is ${overall} out of 100 — please review the details below carefully.`);
   }
 
-  // Chat
   if (chat.hasData) {
     if (chat.score >= 70) {
       parts.push(`Conversations looked healthy across ${chat.totalSessions} chat session${chat.totalSessions !== 1 ? 's' : ''}.`);
@@ -627,16 +522,12 @@ function generateSummary(chat, mmse, game, reminder, overall, rating) {
     parts.push('No chat sessions happened this week.');
   }
 
-  // MMSE
   if (mmse.hasData) {
-    const statusText = friendlyMmseStatus(mmse.latestScore);
-    const trendText = friendlyTrend(mmse.trend);
-    parts.push(`Memory test score was ${mmse.latestScore} out of 30 (${statusText}). Trend: ${trendText.toLowerCase()}.`);
+    parts.push(`Memory test score was ${mmse.latestScore} out of 30 (${friendlyMmseStatus(mmse.latestScore)}). Trend: ${friendlyTrend(mmse.trend).toLowerCase()}.`);
   } else {
     parts.push('No memory test was taken this week.');
   }
 
-  // Games
   if (game.hasData) {
     if (game.score >= 70) {
       parts.push(`Brain games went well — ${game.totalSessions} session${game.totalSessions !== 1 ? 's' : ''} played.`);
@@ -647,7 +538,6 @@ function generateSummary(chat, mmse, game, reminder, overall, rating) {
     parts.push('No brain games were played this week.');
   }
 
-  // Reminders
   if (reminder.hasData) {
     if (reminder.complianceRate >= 80) {
       parts.push(`Medications were taken on time ${reminder.complianceRate}% of the time — great job!`);

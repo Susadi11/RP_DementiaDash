@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Download, MessageSquare, Brain, Gamepad2, Bell, Calendar,
   Heart, Pill, AlertTriangle, FileText, ChevronRight,
-  RefreshCw, Shield, CheckCircle
+  RefreshCw, Shield, CheckCircle, ShieldAlert, ShieldCheck, Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -571,14 +571,53 @@ const Dashboard = () => {
                   <p className={`text-sm font-bold mt-2 ${reportData.rating.color}`}>{reportData.rating.label}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
-                  <ScoreCircle score={reportData.chat.score} label="Conversations" />
-                  <ScoreCircle score={reportData.mmse.score} label="Memory Test" />
-                  <ScoreCircle score={reportData.game.score} label="Brain Games" />
-                  <ScoreCircle score={reportData.reminder.score} label="Medications" />
+                  <ScoreCircle score={reportData.chat.hasData     ? reportData.chat.score     : null} label="Conversations" />
+                  <ScoreCircle score={reportData.mmse.hasData     ? reportData.mmse.score     : null} label="Memory Test" />
+                  <ScoreCircle score={reportData.game.hasData     ? reportData.game.score     : null} label="Brain Games" />
+                  <ScoreCircle score={reportData.reminder.hasData ? reportData.reminder.score : null} label="Medications" />
                 </div>
               </div>
 
-              <div className="px-4 py-3 bg-gray-50/60 rounded-xl text-center">
+              {/* Final Dementia Risk Verdict */}
+              {reportData.finalVerdict && (() => {
+                const v = reportData.finalVerdict;
+                const VerdictIcon = v.verdictIcon === 'high' ? ShieldAlert : v.verdictIcon === 'medium' ? Activity : ShieldCheck;
+                return (
+                  <div className={`mt-5 p-4 rounded-xl border ${v.verdictBg}`}>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <VerdictIcon className={`w-5 h-5 ${v.verdictColor}`} />
+                      <span className={`text-base font-bold ${v.verdictColor}`}>
+                        Final Assessment: {v.verdict}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{v.verdictDesc}</p>
+                    {v.flags.length > 0 && (
+                      <div className="space-y-1">
+                        {v.flags.map(f => (
+                          <div key={f.key} className="flex items-center space-x-1.5 text-xs text-gray-500">
+                            <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                            <span>{f.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {reportData.mmseUsedAsAnchor && (
+                      <p className="text-xs text-gray-400 mt-2 italic">
+                        Memory test included as baseline — last taken {reportData.mmse.lastTestDate
+                          ? new Date(reportData.mmse.lastTestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : 'previously'}.
+                      </p>
+                    )}
+                    {!reportData.mmse.hasData && (
+                      <p className="text-xs text-gray-400 mt-2 italic">
+                        No memory test on record — take a baseline MMSE for a more accurate assessment.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div className="px-4 py-3 bg-gray-50/60 rounded-xl text-center mt-4">
                 <p className="text-xs text-secondary">
                   This score combines how your loved one did across conversations, memory tests, brain games, and medication tracking this week.
                   Only areas with activity are counted.
