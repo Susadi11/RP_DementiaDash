@@ -1,4 +1,4 @@
-import { Search, Bell, User, ChevronDown, Pill, CheckCircle, Clock, AlertTriangle, X } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, Pill, CheckCircle, Clock, AlertTriangle, X, Menu } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCaregiverProfile, logoutCaregiver, getMyAlerts } from '../../services/api';
@@ -30,7 +30,7 @@ function timeAgo(dateStr) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-const Navbar = () => {
+const Navbar = ({ onMenuClick }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [caregiverName, setCaregiverName] = useState('');
@@ -98,7 +98,16 @@ const Navbar = () => {
   return (
     <nav className="glass-strong shadow-glass-sm px-6 py-3 sticky top-0 z-40">
       <div className="flex items-center justify-between">
-        {/* Logo */}
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={onMenuClick}
+          className="md:hidden p-2 rounded-xl hover:bg-white/50 transition-all duration-200 mr-1"
+          aria-label="Toggle menu"
+        >
+          <Menu className="w-5 h-5 text-secondary" />
+        </button>
+
+        {/* Logo and Title */}
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden">
             <img
@@ -118,8 +127,8 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="flex-1 max-w-md mx-8">
+        {/* Search Bar — hidden on mobile */}
+        <div className="hidden md:block flex-1 max-w-md mx-8">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-secondary/50 w-4 h-4" />
             <input
