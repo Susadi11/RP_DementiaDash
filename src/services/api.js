@@ -30,16 +30,7 @@ const handleResponse = async (response) => {
       }
       throw new Error(data.detail || 'Unauthorized');
     }
-    // FastAPI validation errors return detail as an array of objects
-    let errorMessage = 'API request failed';
-    if (data.detail) {
-      if (Array.isArray(data.detail)) {
-        errorMessage = data.detail.map(e => e.msg).join(', ');
-      } else {
-        errorMessage = data.detail;
-      }
-    }
-    throw new Error(errorMessage);
+    throw new Error(data.detail || 'API request failed');
   }
 
   return data;

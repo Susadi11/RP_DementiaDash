@@ -1,7 +1,7 @@
 import { Home, MessageSquare, Brain, Gamepad2, Settings, User, Activity } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Sidebar = ({ onLinkClick }) => {
+const Sidebar = () => {
   const location = useLocation();
 
   const menuItems = [
@@ -27,7 +27,6 @@ const Sidebar = ({ onLinkClick }) => {
             <Link
               key={item.path}
               to={item.path}
-              onClick={onLinkClick}
               className={`group flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${active
                   ? 'bg-primary/10 text-primary shadow-glow-sm'
                   : 'text-secondary hover:bg-white/60 hover:text-deepBlue hover:translate-x-0.5'
