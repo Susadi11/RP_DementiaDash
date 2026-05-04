@@ -514,6 +514,18 @@ export const getCaregiverAlerts = async (patientId, filters = {}) => {
 };
 
 /**
+ * Get alerts across ALL linked patients for the logged-in caregiver (for navbar bell)
+ * @param {number} days - Number of days to look back (default: 3)
+ */
+export const getMyAlerts = async (days = 3) => {
+  const response = await fetch(`${API_BASE_URL}/api/caregiver/my-alerts?days=${days}&resolved=false`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeader() }
+  });
+  return handleResponse(response);
+};
+
+/**
  * Get snoozed reminders for a patient
  * @param {string} patientId - Patient user ID
  * @param {number} days - Number of days to look back (default: 7)
