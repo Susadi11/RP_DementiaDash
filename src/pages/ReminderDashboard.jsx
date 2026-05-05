@@ -482,74 +482,111 @@ const ReminderDashboard = () => {
               );
             })()}
 
-            {/* Daily Final Score & Recommendations */}
+            {/* AI Final Score & Recommendations */}
             {(() => {
-              // Get latest daily score or dashboard cognitive risk as fallback
               const latestDaily = dailyScores?.daily_breakdown?.[0];
               const summary = dailyScores?.summary;
-              
-              const finalScore = latestDaily?.final_score ?? (dashboard?.cognitive_risk ? Math.round(0.6 * (100 - (dashboard.cognitive_risk.avg_cognitive_risk * 100)) + 0.4 * 50) : null);
-              const adherenceScore = latestDaily?.adherence_score ?? (summary?.avg_adherence_score ?? null);
-              const cognitiveRisk = latestDaily?.cognitive_risk_score ?? (dashboard?.cognitive_risk?.avg_cognitive_risk ? Math.round(dashboard.cognitive_risk.avg_cognitive_risk * 100) : null);
-              const trend = summary?.trend ?? dashboard?.cognitive_risk?.confusion_trend ?? null;
-              
+
+              // final_score from 4-model composite (0-100, lower = healthier)
+              const finalScore = latestDaily?.final_score ?? (
+                dashboard?.cognitive_risk?.avg_cognitive_risk != null
+                  ? Math.round(dashboard.cognitive_risk.avg_cognitive_risk * 100)
+                  : null
+              );
+              const adherenceScore = latestDaily?.adherence_score ?? summary?.avg_adherence_score ?? null;
+              const riskLevel = latestDaily?.risk_level ?? dashboard?.cognitive_risk?.risk_level ?? null;
+              const trend = summary?.trend ?? null;
+
               if (finalScore === null && !dashboard?.cognitive_risk) return null;
 
-              // Determine score quality color
-              const scoreColor = finalScore >= 75 
-                ? 'text-green-700' 
-                : finalScore >= 50 
-                ? 'text-yellow-700' 
-                : 'text-red-700';
-              
-              const scoreBg = finalScore >= 75 
-                ? 'from-green-50 to-emerald-50' 
-                : finalScore >= 50 
-                ? 'from-yellow-50 to-orange-50' 
-                : 'from-red-50 to-pink-50';
+              // Lower cognitive risk = green (healthy), higher = red (at risk)
+              const scoreColor =
+                finalScore <= 20 ? 'text-green-700' :
+                finalScore <= 40 ? 'text-yellow-700' :
+                finalScore <= 60 ? 'text-orange-600' :
+                'text-red-700';
+
+              const scoreBg =
+                finalScore <= 20 ? 'from-green-50 to-emerald-50' :
+                finalScore <= 40 ? 'from-yellow-50 to-amber-50' :
+                finalScore <= 60 ? 'from-orange-50 to-red-50' :
+                'from-red-50 to-pink-50';
+
+              const riskBadgeColor =
+                riskLevel === 'low'      ? 'bg-green-100 text-green-800' :
+                riskLevel === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
+                riskLevel === 'high'     ? 'bg-orange-100 text-orange-800' :
+                riskLevel === 'critical' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-700';
+
+              const trendBadgeColor =
+                trend === 'improving'         ? 'bg-green-100 text-green-800' :
+                trend === 'worsening'         ? 'bg-red-100 text-red-800' :
+                trend === 'insufficient_data' ? 'bg-gray-100 text-gray-600' :
+                'bg-blue-100 text-blue-800';
 
               return (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Daily Final Score */}
+                  {/* AI Final Score card */}
                   <Card className={`bg-gradient-to-br ${scoreBg}`}>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Daily Wellness Score
-                    </h3>
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        AI Cognitive Risk Score
+                      </h3>
+                      {riskLevel && (
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase ${riskBadgeColor}`}>
+                          {riskLevel}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mb-4">
+                      4-model composite · lower is healthier
+                    </p>
+
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className={`text-5xl font-bold ${scoreColor}`}>
-                            {finalScore !== null ? finalScore : '—'}
-                          </div>
-                          <p className="text-sm text-gray-600 mt-2">
-                            {latestDaily?.day_of_week ? `${latestDaily.day_of_week} (Today)` : 'Latest Score'}
-                          </p>
+                      <div>
+                        <div className={`text-5xl font-bold ${scoreColor}`}>
+                          {finalScore !== null ? `${finalScore}%` : '—'}
                         </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {latestDaily?.day_of_week ? `${latestDaily.day_of_week} · Today` : 'Latest reading'}
+                        </p>
                       </div>
-                      
-                      {/* Score Breakdown */}
-                      <div className="pt-2 border-t border-gray-200 space-y-2">
+
+                      {/* Progress bar */}
+                      <div className="w-full bg-white/60 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all ${
+                            finalScore <= 20 ? 'bg-green-500' :
+                            finalScore <= 40 ? 'bg-yellow-500' :
+                            finalScore <= 60 ? 'bg-orange-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${Math.min(finalScore ?? 0, 100)}%` }}
+                        />
+                      </div>
+
+                      {/* Breakdown */}
+                      <div className="pt-2 border-t border-white/50 space-y-2">
                         {adherenceScore !== null && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-600">Adherence</span>
+                            <span className="text-sm font-medium text-gray-600">Reminder Adherence</span>
                             <span className="text-sm font-bold text-gray-900">{adherenceScore}%</span>
-                          </div>
-                        )}
-                        {cognitiveRisk !== null && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-600">Cognitive Risk</span>
-                            <span className="text-sm font-bold text-gray-900">{cognitiveRisk}%</span>
                           </div>
                         )}
                         {trend && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-600">Trend</span>
-                            <span className={`text-sm font-semibold px-2 py-1 rounded ${
-                              trend === 'improving' ? 'bg-green-100 text-green-800' :
-                              trend === 'declining' ? 'bg-red-100 text-red-800' :
-                              'bg-blue-100 text-blue-800'
-                            }`}>
-                              {trend.charAt(0).toUpperCase() + trend.slice(1)}
+                            <span className="text-sm font-medium text-gray-600">7-Day Trend</span>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${trendBadgeColor}`}>
+                              {trend === 'insufficient_data' ? 'Not enough data' :
+                               trend.charAt(0).toUpperCase() + trend.slice(1)}
+                            </span>
+                          </div>
+                        )}
+                        {dailyScores?.summary?.avg_final_score != null && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600">7-Day Average</span>
+                            <span className="text-sm font-bold text-gray-900">
+                              {dailyScores.summary.avg_final_score}%
                             </span>
                           </div>
                         )}
